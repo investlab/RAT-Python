@@ -106,13 +106,13 @@ def main():
         # download a file
         elif cmd == 'download':
             f_name = action.split()[0]
-            with open(f_name, 'w') as f:
+
+            with open(f_name, 'wb') as f:
                 while True:
-                    recv_data = conn.recv(4096)
-                    recv_data = decrypt(recv_data)
-                    if recv_data == 'end of file':
+                    recv_data = conn.recv(1024)
+                    if not recv_data:
                         break
-                    f.write(recv_data)
+                    f.write(decrypt(recv_data))
 
 
 if __name__ == '__main__':

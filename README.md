@@ -38,7 +38,7 @@ Linux sandbox3 4.7.6-1-ARCH #1 SMP PREEMPT Fri Sep 30 19:28:42 CEST 2016 x86_64 
 ```
 
 ## Notes
-* The ELF was created using [PyInstaller](http://www.pyinstaller.org/).
+* Binaries can created using [PyInstaller](http://www.pyinstaller.org/).
 * Key was generated with `binascii.hexlify(os.urandom(16))`
 
 ## Other open-source Python RATs for Reference
