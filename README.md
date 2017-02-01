@@ -1,6 +1,6 @@
 # basicRAT
 
-This is a boilerplate Python RAT (Remote Access Trojan). I created this to maintain a bare-bones, clean design Python RAT with only essential features. My goal is to use basicRAT as a starting point to create other RATs that use various common-place protocols for C2.
+This is a Python RAT (Remote Access Trojan). I created this to maintain a clean design Python RAT with standard features. This is a work in progress and is currently still being hacked on.
 
 **Disclaimer: This RAT is for research purposes only, and should only be used on authorized systems. Accessing a computer system or network without authorization or explicit permission is illegal.**
 
@@ -10,11 +10,25 @@ This is a boilerplate Python RAT (Remote Access Trojan). I created this to maint
 * Reverse Shell
 * File upload/download
 
+## Todo
+* Client binary generation tool (cross-platform)
+  * Pyinstaller
+  * Switch options for remote IP, port, crypto, key, protocol, etc
+* Persistance (cross-platform)
+  * Windows: Registry keys, WMIC, Startup Dir
+  * Linux: Cron jobs, services, modprobe
+* Additional Crypto
+* Common C2 Protocols (HTTP, DNS)
+* Privilege Escalation (getsystem-esque, dirty cow)
+* Screenshot
+* Keylogger
+* Accept connection from multiple clients
+
 ## Usage
 ```
-$ python basicRAT_server.py 1337
+$ python basicRAT_server.py --crypto AES --port 1337
 
- ____    ____  _____ ____   __  ____    ____  ______      .  ,
+  ____    ____  _____ ____   __  ____    ____  ______      .  ,
  |    \  /    |/ ___/|    | /  ]|    \  /    ||      |    (\;/)
  |  o  )|  o  (   \_  |  | /  / |  D  )|  o  ||      |   oo   \//,        _
  |     ||     |\__  | |  |/  /  |    / |     ||_|  |_| ,/_;~      \,     / '
