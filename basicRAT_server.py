@@ -80,14 +80,19 @@ def main():
 
         # download a file
         elif cmd == 'download':
-            f_name = action.split()[0]
-
-            with open(f_name, 'wb') as f:
-                while True:
-                    recv_data = conn.recv(1024)
-                    if not recv_data:
-                        break
-                    f.write(decrypt(recv_data, DHKEY))
+            for fname in action.split():
+                fname = fname.strip()
+                
+                with open(fname, 'wb') as f:
+                    datasize = bytestring_to_int(conn.recv(4))
+                    while datasize:
+                        print datasize
+                        res = conn.recv(datasize)
+                        f.write(res)
+                        datasize = conn.recv(4)
+                   
+                    
+                
                     
         # regenerate DH key (dangerous! may cause connection loss!)
         # available in case a fallback occurs or you suspect evesdropping

