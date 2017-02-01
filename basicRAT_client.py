@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import socket
-import sys
-
-from Crypto import Random
-from Crypto.Cipher import AES
+from basicRAT import *
 
 HOST = 'localhost'
 PORT = 1337
