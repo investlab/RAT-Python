@@ -25,14 +25,14 @@ def int_to_bytestring(i):
         i = i >> 8
     return bs
     
-def encrypt(plaintext):
+def encrypt(plaintext, KEY):
     plaintext = pad(plaintext)
     iv = Random.new().read(AES.block_size)
     cipher = AES.new(KEY, AES.MODE_CBC, iv)
     return iv + cipher.encrypt(plaintext)
 
 
-def decrypt(ciphertext):
+def decrypt(ciphertext, KEY):
     iv = ciphertext[:AES.block_size]
     cipher = AES.new(KEY, AES.MODE_CBC, iv)
     plaintext = cipher.decrypt(ciphertext[AES.block_size:])
