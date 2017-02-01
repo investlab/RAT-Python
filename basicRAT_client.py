@@ -14,6 +14,7 @@ def main():
     s.connect((HOST, PORT))
     DHKEY = diffiehellman(s)
     #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    
     while True:
         data = s.recv(1024)
         data = decrypt(data, DHKEY).split()
@@ -46,6 +47,12 @@ def main():
                 results = f.read(1024)
                 if results == '':
                     break
+                
+        # regenerate DH key (dangerous! may cause connection loss)
+        # available in case a fallback occurs or you suspect evesdropping
+        elif cmd == 'rekey':
+            DHKEY = diffiehellman(s)
+            #print binascii.hexlify(DHKEY) #debug
 
 
 if __name__ == '__main__':
