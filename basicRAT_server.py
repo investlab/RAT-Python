@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import argparse
 import readline
 import socket
@@ -46,11 +45,11 @@ def main():
     args    = vars(parser.parse_args())
     port    = args['port']
     crypto  = args['crypto']
-    
+
     if crypto == 'AES':
-        from common import AES_encrypt as encrypt
-        from common import AES_decrypt as decrypt
-    
+        from core.crypto import AES_encrypt as encrypt
+        from core.crypto import AES_decrypt as decrypt
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:

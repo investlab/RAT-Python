@@ -1,6 +1,6 @@
 # basicRAT
 
-This is a Python RAT (Remote Access Trojan). I created this to maintain a clean design Python RAT with standard features. This is a work in progress and is currently still being hacked on.
+This is a Python RAT (Remote Access Trojan). I created this to maintain a clean design Python RAT with standard features. Currently a work in progress and still being hacked on.
 
 **Disclaimer: This RAT is for research purposes only, and should only be used on authorized systems. Accessing a computer system or network without authorization or explicit permission is illegal.**
 
@@ -23,6 +23,10 @@ This is a Python RAT (Remote Access Trojan). I created this to maintain a clean 
 * Screenshot
 * Keylogger
 * Accept connection from multiple clients
+* Toolkit (wget, unrar, unzip, )
+* Scanning utility
+* Password dumping (mimikatz / gsecdump)
+* Tunneling
 
 ## Usage
 ```
