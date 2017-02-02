@@ -3,7 +3,7 @@
 
 import readline
 import time
-
+import struct
 from basicRAT import *
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -84,12 +84,11 @@ def main():
                 fname = fname.strip()
                 
                 with open(fname, 'wb') as f:
-                    datasize = bytestring_to_int(conn.recv(4))
+                    datasize = struct.unpack("!I", conn.recv(4))[0]
                     while datasize:
-                        print datasize
-                        res = conn.recv(datasize)
+                        res = decrypt(conn.recv(datasize), DHKEY)
                         f.write(res)
-                        datasize = conn.recv(4)
+                        datasize = struct.unpack("!I", conn.recv(4))[0]
                    
                     
                 
