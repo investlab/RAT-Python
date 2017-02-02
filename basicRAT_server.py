@@ -30,12 +30,12 @@ BANNER = '''
          https://github.com/vesche/basicRAT
 '''
 HELP_TEXT = '''
-download <file> - Download a file.
+download <files> - Download file(s).
 help            - Show this help menu.
 persistence     - Apply persistence mechanism.
 rekey           - Regenerate crypto key.
 run <command>   - Execute a command on the target.
-upload <file>   - Upload a file.
+upload <files>   - Upload files(s).
 quit            - Gracefully kill client and server.
 '''
 
