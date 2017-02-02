@@ -6,9 +6,18 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
+class PaddingError(Exception):
+    pass
 
-def pad(s):
-    return s + b'\0' * (AES.block_size - len(s) % AES.block_size)
+def pkcs7(s, bs=AES.block_size):
+    i = (bs - (len(s) % bs))
+    return s + (chr(i)*i)
+
+def unpkcs7(s):
+    i = s[-1]
+    if s.endswith(i*ord(i)):
+        return s[:-ord(i)]
+    raise PaddingError("PKCS7 improper padding {}".format(repr(s)))
 
 def bytestring_to_int(bytes):
     i = 0
@@ -26,7 +35,7 @@ def int_to_bytestring(i):
     return bs
     
 def encrypt(plaintext, KEY):
-    plaintext = pad(plaintext)
+    plaintext = pkcs7(plaintext)
     iv = Random.new().read(AES.block_size)
     cipher = AES.new(KEY, AES.MODE_CBC, iv)
     return iv + cipher.encrypt(plaintext)
@@ -36,7 +45,7 @@ def decrypt(ciphertext, KEY):
     iv = ciphertext[:AES.block_size]
     cipher = AES.new(KEY, AES.MODE_CBC, iv)
     plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-    return plaintext.rstrip(b'\0')
+    return unpkcs7(plaintext)
 
 def diffiehellman(sock, server=True, bits=2048):
     # currently trying to compress this line.
