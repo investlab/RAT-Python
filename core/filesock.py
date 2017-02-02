@@ -4,8 +4,9 @@
 # basicRAT file module
 # https://github.com/vesche/basicRAT
 #
-import struct
+
 import socket
+import struct
 
 # temporary
 from crypto import AES_encrypt as encrypt
@@ -20,8 +21,9 @@ def recvfile(sock, fname, key):
             res = sock.recv(datasize)
             f.write(decrypt(res, key))
             datasize = struct.unpack("!I", sock.recv(4))[0]
-            
-#send a file over a socket   
+
+
+#send a file over a socket
 def sendfile(sock, fname, key):
     with open(fname, 'rb') as f:
         res = f.read(4096)
