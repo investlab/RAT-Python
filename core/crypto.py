@@ -49,11 +49,11 @@ def diffiehellman(sock, server=True, bits=2048):
     if server:
         sock.send(int_to_bytestring(xA))
         b = bytestring_to_int(sock.recv(4096))
-        
+
     else:
         b = bytestring_to_int(sock.recv(4096))
         sock.send(int_to_bytestring(xA))
-        
+
     s = pow(b,a,p)
     return SHA256.new(int_to_bytestring(s)).digest()
 

