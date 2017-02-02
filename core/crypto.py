@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+#
+# basicRAT crypto module
+# https://github.com/vesche/basicRAT
+#
+
 from Crypto import Random
 from Crypto.Cipher import AES
 
