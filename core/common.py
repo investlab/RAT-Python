@@ -5,6 +5,7 @@
 # https://github.com/vesche/basicRAT
 #
 
+
 # Convert an interger into a series of bytes
 # A lightweight replacement for struck.pack()
 def bytestring_to_int(bytes):
@@ -14,6 +15,7 @@ def bytestring_to_int(bytes):
         i+= ord(bytes[-1])
         bytes = bytes[:-1]
     return i
+
 
 # Convert a series of bytes into an integer
 # A lightweight replacement for struck.unpack()

@@ -13,17 +13,21 @@ from Crypto.Hash import SHA256
 
 from common import int_to_bytestring, bytestring_to_int
 
-FALLBACK_KEY  = '82e672ae054aa4de6f042c888111686a'
+
+FB_KEY  = '82e672ae054aa4de6f042c888111686a'
 # generate your own key with...
 # python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
 
+
 class PaddingError(Exception):
     pass
+
 
 # PKCS#7 - RFC 2315 section 10.3.2
 def pkcs7(s, bs=AES.block_size):
     i = (bs - (len(s) % bs))
     return s + (chr(i)*i)
+
 
 # Strip PKCS#7 padding - throws PaddingError on failure
 def unpkcs7(s):
@@ -31,8 +35,9 @@ def unpkcs7(s):
     if s.endswith(i*ord(i)):
         return s[:-ord(i)]
     raise PaddingError("PKCS7 improper padding {}".format(repr(s[-32:])))
-    
-#Diffie-Hellman Internet Key Exchange (IKE) - RFC 2631
+
+
+# Diffie-Hellman Internet Key Exchange (IKE) - RFC 2631
 def diffiehellman(sock, server=True, bits=2048):
     # currently trying to compress this line.
     # using RFC 3526 MOPD group 14 (2048 bits)
@@ -51,6 +56,7 @@ def diffiehellman(sock, server=True, bits=2048):
         
     s = pow(b,a,p)
     return SHA256.new(int_to_bytestring(s)).digest()
+
 
 def AES_encrypt(plaintext, KEY):
     plaintext = pkcs7(plaintext)
