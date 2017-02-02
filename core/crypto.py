@@ -7,11 +7,11 @@
 
 import os
 
+from common import int_to_bytestring, bytestring_to_int
+
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
-
-from common import int_to_bytestring, bytestring_to_int
 
 
 FB_KEY  = '82e672ae054aa4de6f042c888111686a'

