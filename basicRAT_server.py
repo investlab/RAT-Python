@@ -86,7 +86,7 @@ def main():
                 with open(fname, 'wb') as f:
                     datasize = struct.unpack("!I", conn.recv(4))[0]
                     while datasize:
-                        res = decrypt(conn.recv(datasize), DHKEY)
+                        res = conn.recv(datasize)
                         f.write(res)
                         datasize = struct.unpack("!I", conn.recv(4))[0]
                    

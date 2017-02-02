@@ -42,7 +42,7 @@ def main():
                     res = f.read(4096)
                     while len(res):
                         s.send(struct.pack("!I", len(res)))
-                        x = s.send(encrypt(res, DHKEY))
+                        x = s.send(res)
                         res = f.read(4096)
                     s.send('\x00\x00\x00\x00'); # EOF
             
