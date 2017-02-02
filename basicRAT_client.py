@@ -14,6 +14,7 @@ import sys
 from core import common
 # from core import crypto
 from core import persistence
+from core.file import recvfile, sendfile
 
 # temporary
 from core.crypto import diffiehellman
@@ -61,14 +62,14 @@ def main():
             for fname in action.split():
                 fname = fname.strip()
                 #print 'requested file: {}'.format(fname)
-                with open(fname, 'rb') as f:
-                    res = f.read(4096)
-                    while len(res):
-                        enc_res = encrypt(res, DHKEY)
-                        s.send(struct.pack("!I", len(enc_res)))
-                        s.send(enc_res)
-                        res = f.read(4096)
-                    s.send('\x00\x00\x00\x00') # EOF
+                sendfile(s, fname, DHKEY)
+
+        # receive file
+        elif cmd == 'upload':
+            for fname in action.split():
+                fname = fname.strip()
+                #print 'receiving file: {}'.format(fname)
+                recvfile(s, fname, DHKEY)
 
         # regenerate DH key (dangerous! may cause connection loss)
         # available in case a fallback occurs or you suspect evesdropping
