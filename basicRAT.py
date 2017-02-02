@@ -17,7 +17,7 @@ def unpkcs7(s):
     i = s[-1]
     if s.endswith(i*ord(i)):
         return s[:-ord(i)]
-    raise PaddingError("PKCS7 improper padding {}".format(repr(s)))
+    raise PaddingError("PKCS7 improper padding {}".format(repr(s[-32:])))
 
 def bytestring_to_int(bytes):
     i = 0
