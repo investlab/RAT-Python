@@ -19,7 +19,7 @@ from core import toolkit
 
 PLATFORM = sys.platform
 HOST     = 'localhost'
-PORT     = 1338
+PORT     = 1337
 FB_KEY   = '82e672ae054aa4de6f042c888111686a'
 # generate your own key with...
 # python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
