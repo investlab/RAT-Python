@@ -27,6 +27,7 @@ This is a Python RAT (Remote Access Trojan). basicRAT was created to maintain a 
 * Scanning utility
 * Password dumping (mimikatz / gsecdump)
 * Tunneling
+* System survey (sysinfo)
 
 ## Usage
 ```
@@ -59,7 +60,7 @@ Linux sandbox3 4.8.2-c9 #1 SMP Thu Oct 20 04:08:21 UTC 2016 x86_64 x86_64 x86_64
 
 ## Authors
 * Austin Jackson [@vesche](https://github.com/vesche)
-* Skylar Curits  [@deadPix3l](https://github.com/deadPix3l)
+* Skyler Curtis [@deadPix3l](https://github.com/deadPix3l)
 
 ## Other open-source Python RATs for Reference
 * [ahhh/Reverse_DNS_Shell](https://github.com/ahhh/Reverse_DNS_Shell)
