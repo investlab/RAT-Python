@@ -45,7 +45,7 @@ def diffiehellman(sock, server=True, bits=2048):
     g = 2;
     a = bytestring_to_int(os.urandom(32)) # a 256bit number, sufficiently large
     xA = pow(g,a,p)
-    
+
     if server:
         sock.send(int_to_bytestring(xA))
         b = bytestring_to_int(sock.recv(4096))
