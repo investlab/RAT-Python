@@ -8,27 +8,26 @@
 import socket
 import struct
 
-# temporary
-from crypto import AES_encrypt as encrypt
-from crypto import AES_decrypt as decrypt
+from crypto import AES_encrypt
+from crypto import AES_decrypt
 
 
-# recv a file from a socket.
+# recieve a file from a socket
 def recvfile(sock, fname, key):
     with open(fname, 'wb') as f:
         datasize = struct.unpack("!I", sock.recv(4))[0]
         while datasize:
             res = sock.recv(datasize)
-            f.write(decrypt(res, key))
+            f.write(AES_decrypt(res, key))
             datasize = struct.unpack("!I", sock.recv(4))[0]
 
 
-#send a file over a socket
+# send a file over a socket
 def sendfile(sock, fname, key):
     with open(fname, 'rb') as f:
         res = f.read(4096)
         while len(res):
-            enc_res = encrypt(res, key)
+            enc_res = AES_encrypt(res, key)
             sock.send(struct.pack("!I", len(enc_res)))
             sock.send(enc_res)
             res = f.read(4096)

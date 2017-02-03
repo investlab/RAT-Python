@@ -12,7 +12,7 @@ def bytestring_to_int(bytes):
     i = 0
     while bytes:
         i = i << 8
-        i+= ord(bytes[-1])
+        i += ord(bytes[-1])
         bytes = bytes[:-1]
     return i
 
