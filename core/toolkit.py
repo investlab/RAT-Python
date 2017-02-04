@@ -35,9 +35,9 @@ def unzip(f):
                 zf.extractall('.')
                 return 'File {} extracted.'.format(f)
         except zipfile.BadZipfile:
-            return 'Failed to unzip file.'
+            return 'Error: Failed to unzip file.'
     else:
-        return 'File not found.'
+        return 'Error: File not found.'
 
 
 def wget(url):
@@ -48,6 +48,6 @@ def wget(url):
     try:
         urllib.urlretrieve(url, fname)
     except IOError:
-        return 'Download failed.'
+        return 'Error: Download failed.'
 
     return 'File {} downloaded.'.format(fname)
