@@ -37,7 +37,7 @@ def run(plat_type):
     for url in ex_ip_grab:
         try:
             external_ip = urllib.urlopen('http://'+url).read().rstrip()
-        except:
+        except IOError:
             pass
         if external_ip and (6 < len(external_ip) < 16):
             break

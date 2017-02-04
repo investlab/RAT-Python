@@ -24,6 +24,9 @@ def unzip(f):
 
 
 def wget(url):
+    if not url.startswith('http'):
+        return 'Error: URL must begin with http:// or https:// .'
+
     fname = url.split('/')[-1]
     if not fname:
         fname = 'file-'.format(str(datetime.datetime.now()).replace(' ', '-'))
