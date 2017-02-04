@@ -20,26 +20,15 @@ def run(plat_type):
     processor    = platform.processor()
     architecture = platform.architecture()[0]
 
-    # platform specific
-    if plat_type.startswith('win'):
-        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-
-    if plat_type.startswith('linux') or platform.startswith('darwin'):
-        is_admin = os.getuid() == 0
-
-    admin_access = 'Yes' if is_admin else 'No'
-
     # session information
     username = getpass.getuser()
 
     # network information
-    hostname = socket.gethostname()
-    fqdn = socket.getfqdn()
+    hostname    = socket.gethostname()
+    fqdn        = socket.getfqdn()
     internal_ip = socket.gethostbyname(hostname)
-
-    # get mac address
-    raw_mac = uuid.getnode()
-    mac = ':'.join(("%012X" % raw_mac)[i:i+2] for i in range(0, 12, 2))
+    raw_mac     = uuid.getnode()
+    mac         = ':'.join(("%012X" % raw_mac)[i:i+2] for i in range(0, 12, 2))
 
     # get external ip address
     ex_ip_grab = [ 'ipinfo.io/ip', 'icanhazip.com', 'ident.me',
@@ -52,6 +41,17 @@ def run(plat_type):
             pass
         if external_ip and (6 < len(external_ip) < 16):
             break
+
+    # platform specific
+    is_admin = False
+
+    if plat_type.startswith('win'):
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+
+    elif plat_type.startswith('linux') or platform.startswith('darwin'):
+        is_admin = os.getuid() == 0
+
+    admin_access = 'Yes' if is_admin else 'No'
 
     survey_results = '''
     System Platform     - {}
