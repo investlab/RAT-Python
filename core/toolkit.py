@@ -30,9 +30,12 @@ import zipfile
 
 def unzip(f):
     if os.path.isfile(f):
-        with zipfile.ZipFile(f) as zf:
-            zf.extractall('.')
-            return 'File {} extracted.'.format(f)
+        try:
+            with zipfile.ZipFile(f) as zf:
+                zf.extractall('.')
+                return 'File {} extracted.'.format(f)
+        except zipfile.BadZipfile:
+            return 'Failed to unzip file.'
     else:
         return 'File not found.'
 
@@ -42,6 +45,9 @@ def wget(url):
     if not fname:
         fname = 'file-'.format(str(datetime.datetime.now()).replace(' ', '-'))
 
-    urllib.urlretrieve(url, fname)
+    try:
+        urllib.urlretrieve(url, fname)
+    except IOError:
+        return 'Download failed.'
 
     return 'File {} downloaded.'.format(fname)
