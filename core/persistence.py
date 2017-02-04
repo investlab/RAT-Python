@@ -30,12 +30,12 @@ def mac_persistence():
     return False, 'nothing here yet'
 
 
-def run(platform):
-    if platform.startswith('win'):
+def run(plat_type):
+    if plat_type.startswith('win'):
         success, details = windows_persistence()
-    elif platform.startswith('linux'):
+    elif plat_type.startswith('linux'):
         success, details = linux_persistence()
-    elif platform.startswith('darwin'):
+    elif plat_type.startswith('darwin'):
         success, details = mac_persistence()
     else:
         return 'Error, platform unsupported.'
