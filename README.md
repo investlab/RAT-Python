@@ -1,6 +1,6 @@
 # basicRAT
 
-This is a Python RAT (Remote Access Trojan). basicRAT was created to maintain a clean design full-featured Python RAT. Currently a work in progress and still being hacked on.
+This is a Python RAT (Remote Access Trojan), basicRAT was created to maintain a clean design full-featured Python RAT. Currently a work in progress and still being hacked on.
 
 **Disclaimer: This RAT is for research purposes only, and should only be used on authorized systems. Accessing a computer system or network without authorization or explicit permission is illegal.**
 
@@ -10,6 +10,7 @@ This is a Python RAT (Remote Access Trojan). basicRAT was created to maintain a 
 * Reverse shell
 * File upload/download
 * Standard utilities (wget, unzip)
+* System survey
 
 ## Todo
 * Client binary generation tool (cross-platform)
@@ -23,10 +24,9 @@ This is a Python RAT (Remote Access Trojan). basicRAT was created to maintain a 
 * Screenshot
 * Keylogger
 * Expand toolkit (unrar, sysinfo)
-* Scanning utility
+* Scanning utility (probe scan / ping sweep, scanning subnet)
 * Password dumping (mimikatz / gsecdump)
 * Tunneling
-* System survey
 * Client periodic connection attempt
 * Accept connection from multiple clients
 
@@ -53,6 +53,8 @@ persistence         - Apply persistence mechanism.
 quit                - Gracefully kill client and server.
 rekey               - Regenerate crypto key.
 run <command>       - Execute a command on the target.
+scan <ip>           - Scan top 25 ports on a single host.
+survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.
