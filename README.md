@@ -12,24 +12,6 @@ This is a Python RAT (Remote Access Trojan), basicRAT was created to maintain a 
 * Standard utilities (wget, unzip)
 * System survey
 
-## Todo
-* Client binary generation tool (cross-platform)
-  * Pyinstaller
-  * Switch options for remote IP, port, etc
-* Persistance (cross-platform)
-  * Windows: Registry keys, WMIC, Startup Dir
-  * Linux: Cron jobs, services, modprobe
-* Common C2 Protocols (HTTP, DNS)
-* Privilege Escalation (getsystem-esque, dirty cow)
-* Screenshot
-* Keylogger
-* Expand toolkit (unrar, sysinfo)
-* Scanning utility (probe scan / ping sweep, scanning subnet)
-* Password dumping (mimikatz / gsecdump)
-* Tunneling
-* Client periodic connection attempt
-* Accept connection from multiple clients
-
 ## Usage
 ```
 $ python basicRAT_server.py --port 1337
@@ -62,6 +44,31 @@ wget <url>          - Download a file from the web.
 [127.0.0.1] basicRAT> run uname -a
 Linux sandbox3 4.8.13-1-ARCH #1 SMP PREEMPT Fri Dec 9 07:24:34 CET 2016 x86_64 GNU/Linux
 ```
+
+## Build a stand-alone executable
+Keep in mind that before building you will likely want to modify both the `HOST` and `PORT` variables located at the top of `basicRAT_client.py` to fit your needs.
+
+On Linux you will need Python 2.x, [PyInstaller](http://www.pyinstaller.org/), and pycrypto. Then run something like `pyinstaller2 --onefile basicRAT_client.py` and it should generate a `dist/` folder that contains a stand-alone ELF executable.
+
+On Windows you will need Python 2.x, PyInstaller, pycrypto, pywin32, and pefile. Then run something like `C:\path\to\PyInstaller-3.2\PyInstaller-3.2\pyinstaller.py --onefile basicRAT_client.py` and it should generate a `dist/` folder that contains a stand-alone PE (portable executable).
+
+## Todo
+* Client binary generation tool (cross-platform)
+  * Pyinstaller
+  * Switch options for remote IP, port, etc
+* Persistance (cross-platform)
+  * Windows: Registry keys, WMIC, Startup Dir
+  * Linux: Cron jobs, services, modprobe
+* Common C2 Protocols (HTTP, DNS)
+* Privilege Escalation (getsystem-esque, dirty cow)
+* Screenshot
+* Keylogger
+* Expand toolkit (unrar, sysinfo)
+* Scanning utility (probe scan / ping sweep, scanning subnet)
+* Password dumping (mimikatz / gsecdump)
+* Tunneling
+* Client periodic connection attempt
+* Accept connection from multiple clients
 
 ## Authors
 * Austin Jackson [@vesche](https://github.com/vesche)
