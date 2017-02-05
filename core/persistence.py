@@ -5,6 +5,8 @@
 # https://github.com/vesche/basicRAT
 #
 
+import sys
+
 
 def windows_persistence():
     import _winreg
