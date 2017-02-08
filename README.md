@@ -6,7 +6,7 @@ This is a Python RAT (Remote Access Trojan), basicRAT was created to maintain a 
 
 ## Features
 * Cross-platform
-* AES CBC encrypted C2 with D-H exchange
+* AES GCM encrypted C2 with D-H exchange
 * Accepts connection from multiple clients
 * Command execution
 * File upload/download
@@ -33,12 +33,12 @@ basicRAT server listening for connections on port 1337.
 client <id>         - Connect to a client.
 clients             - List connected clients.
 download <files>    - Download file(s).
+execute <command>   - Execute a command on the target.
 help                - Show this help menu.
 kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
 quit                - Exit the server and end all client connections.
 rekey               - Regenerate crypto key.
-run <command>       - Execute a command on the target.
 scan <ip>           - Scan top 25 ports on a single host.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
@@ -51,7 +51,7 @@ ID - Client Address
 
 [?] basicRAT> client 1
 
-[1] basicRAT> run uname -a
+[1] basicRAT> execute uname -a
 Linux sandbox3 4.8.13-1-ARCH #1 SMP PREEMPT Fri Dec 9 07:24:34 CET 2016 x86_64 GNU/Linux
 ```
 

@@ -6,12 +6,11 @@
 #
 
 import os
+import socket
 
-from Crypto import Random
-from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
-
-from common import int_to_bytestring, bytestring_to_int
+from Crypto.Util.number import bytes_to_long, long_to_bytes
+from aes_gcm import *
 
 
 FB_KEY = '82e672ae054aa4de6f042c888111686a'
@@ -24,7 +23,7 @@ class PaddingError(Exception):
 
 
 # PKCS#7 - RFC 2315 section 10.3.2
-def pkcs7(s, bs=AES.block_size):
+def pkcs7(s, bs=16):
     i = (bs - (len(s) % bs))
     return s + (chr(i)*i)
 
@@ -42,29 +41,43 @@ def diffiehellman(sock, server=True, bits=2048):
     # using RFC 3526 MOPD group 14 (2048 bits)
     p = 0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF;
     g = 2
-    a = bytestring_to_int(os.urandom(32)) # a 256bit number, sufficiently large
+    a = bytes_to_long(os.urandom(32)) # a 256bit number, sufficiently large
     xA = pow(g, a, p)
 
     if server:
-        sock.send(int_to_bytestring(xA))
-        b = bytestring_to_int(sock.recv(4096))
+        sock.send(long_to_bytes(xA))
+        b = bytes_to_long(sock.recv(4096))
     else:
-        b = bytestring_to_int(sock.recv(4096))
-        sock.send(int_to_bytestring(xA))
+        b = bytes_to_long(sock.recv(4096))
+        sock.send(long_to_bytes(xA))
 
     s = pow(b, a, p)
-    return SHA256.new(int_to_bytestring(s)).digest()
+    return SHA256.new(long_to_bytes(s)).digest()
 
 
-def AES_encrypt(plaintext, KEY):
-    plaintext = pkcs7(plaintext)
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    return iv + cipher.encrypt(plaintext)
+# take plaintext, encrypt using GCM object, and send over sock
+def sendGCM(sock, GCM_obj, IV, plaintext):
+    ciphertext, tag = GCM_obj.encrypt(IV, plaintext)
+    return sock.send(long_to_bytes(IV, 12) + ciphertext + long_to_bytes(tag, 16))
 
 
-def AES_decrypt(ciphertext, KEY):
-    iv = ciphertext[:AES.block_size]
-    cipher = AES.new(KEY, AES.MODE_CBC, iv)
-    plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-    return unpkcs7(plaintext)
+# read data from sock, decrypt using gcm object, and return plaintext
+# WARNING: gcm.decrypt throws InvalidTagException upon tampered/corrupted
+# this will need to be handled outside of this function
+def recvGCM(sock, GCM_obj):
+    m = ''
+    while True:
+        try:
+            m += sock.recv(4096)
+        except socket.error:
+            break
+
+    # prevents decryption of empty string
+    if not m:
+        return m
+
+    IV = bytes_to_long(m[:12])
+    ciphertext = m[12:-16]
+    tag = bytes_to_long(m[-16:])
+
+    return GCM_obj.decrypt(IV, ciphertext, tag)

