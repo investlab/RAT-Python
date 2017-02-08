@@ -7,7 +7,7 @@ This is a Python RAT (Remote Access Trojan), basicRAT was created to maintain a 
 ## Features
 * Cross-platform
 * AES CBC encrypted C2 with D-H exchange
-* Accepts connection from multiple clients (still somewhat buggy)
+* Accepts connection from multiple clients
 * Command execution
 * File upload/download
 * Standard utilities (wget, unzip)
@@ -47,11 +47,11 @@ wget <url>          - Download a file from the web.
 
 [None] basicRAT> clients
 ID - Client Address
- 0 - 127.0.0.1
+ 1 - 127.0.0.1
 
-[None] basicRAT> client 0
+[None] basicRAT> client 1
 
-[0] basicRAT> run uname -a
+[1] basicRAT> run uname -a
 Linux sandbox3 4.8.13-1-ARCH #1 SMP PREEMPT Fri Dec 9 07:24:34 CET 2016 x86_64 GNU/Linux
 ```
 
