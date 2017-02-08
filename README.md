@@ -7,7 +7,8 @@ This is a Python RAT (Remote Access Trojan), basicRAT was created to maintain a 
 ## Features
 * Cross-platform
 * AES CBC encrypted C2 with D-H exchange
-* Reverse shell
+* Accepts connection from multiple clients (still somewhat buggy)
+* Command execution
 * File upload/download
 * Standard utilities (wget, unzip)
 * System survey
@@ -77,7 +78,6 @@ On Windows you will need Python 2.x, PyInstaller, pycrypto, pywin32, and pefile.
 * Password dumping (mimikatz / gsecdump)
 * Tunneling
 * Client periodic connection attempt
-* Accept connection from multiple clients
 
 ## Authors
 * Austin Jackson [@vesche](https://github.com/vesche)
