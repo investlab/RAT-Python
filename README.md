@@ -28,7 +28,7 @@ $ python basicRAT_server.py --port 1337
 
 basicRAT server listening for connections on port 1337.
 
-[None] basicRAT> help
+[?] basicRAT> help
 
 client <id>         - Connect to a client.
 clients             - List connected clients.
@@ -45,11 +45,11 @@ unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.
 
-[None] basicRAT> clients
+[?] basicRAT> clients
 ID - Client Address
  1 - 127.0.0.1
 
-[None] basicRAT> client 1
+[?] basicRAT> client 1
 
 [1] basicRAT> run uname -a
 Linux sandbox3 4.8.13-1-ARCH #1 SMP PREEMPT Fri Dec 9 07:24:34 CET 2016 x86_64 GNU/Linux

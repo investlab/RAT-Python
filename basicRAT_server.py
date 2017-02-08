@@ -220,9 +220,15 @@ def main():
             print 'Error: Invalid client ID.'
             continue
         
-        # send data to client
+        # get client object based on current client id
         client = server.select_client(curr_client_id)
-        client.send(prompt, cmd, action)
+        
+        # send data to client
+        try:
+            client.send(prompt, cmd, action)
+        except (socket.error, ValueError):
+            print "Client {} disconnected.".format(curr_client_id)
+            cmd = 'kill'
         
         # reset client id if client killed
         if cmd == 'kill':
