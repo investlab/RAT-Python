@@ -50,7 +50,7 @@ class InvalidInputException(Exception):
 
 class InvalidTagException(Exception):
     def __str__(self):
-        return 'The authenticaiton tag is invalid.'
+        return 'The authentication tag is invalid.'
 
 
 # Galois/Counter Mode with AES-128 and 96-bit IV
