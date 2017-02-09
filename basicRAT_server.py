@@ -123,22 +123,22 @@ class ClientConnection(threading.Thread):
 
         # download a file
         elif cmd == 'download':
-            if os.path.isfile(fname):
-                print 'Error: File name already exists.'
-                return
-
             for fname in action.split():
                 fname = fname.strip()
+                if os.path.isfile(fname):
+                    print 'Error: File name already exists.'
+                    return
+
                 filesock.recvfile(self.conn, self.GCM, fname)
 
         # send file
         elif cmd == 'upload':
-            if not os.path.isfile(fname):
-                print 'Error: File not found.'
-                return
-
             for fname in action.split():
                 fname = fname.strip()
+                if not os.path.isfile(fname):
+                    print 'Error: File not found.'
+                    return
+
                 filesock.sendfile(self.conn, self.GCM, self.IV, fname)
 
         # regenerate DH key
