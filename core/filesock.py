@@ -12,16 +12,18 @@ from crypto import sendGCM
 from crypto import recvGCM
 
 
-# recieve a file from a socket
+# recieve a file from a socket (download)
 def recvfile(sock, GCM_obj, fname):
     with open(fname, 'wb') as f:
-        data = recvGCM(sock, GCM_obj)
+        data = 1
         while data:
+            # might be necessary to do a timeout somewhere in here
+            # sock.settimeout(2)
             data = recvGCM(sock, GCM_obj)
             f.write(data)
 
 
-# send a file over a socket
+# send a file over a socket (upload)
 def sendfile(sock, GCM_obj, IV, fname):
     with open(fname, 'rb') as f:
         res = f.read(4096)
