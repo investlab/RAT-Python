@@ -2,12 +2,13 @@ import crypto
 from socket import error as SocketError
 
 class Client(object):
-    def __init__(self, conn, addr, IV=0):
+    def __init__(self, conn, addr, IV=0, uid=0):
         self.conn   = conn
         self.addr   = addr
         self.dh_key = crypto.diffiehellman(self.conn)
         self.GCM    = crypto.AES_GCM(self.dh_key)
         self.IV     = IV
+        self.uid    = uid
         self.conn.setblocking(0)
         
     # take plaintext, encrypt using GCM object, and send over sock

