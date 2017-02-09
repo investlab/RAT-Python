@@ -14,6 +14,7 @@ import sys
 import threading
 import time
 
+from core import common
 from core import crypto
 from core import filesock
 
@@ -94,18 +95,8 @@ class Server(threading.Thread):
         self.clients.remove(conn_to_remove)
 
 
-class ClientConnection(threading.Thread):
+class ClientConnection(common.Client):
     alive = True
-
-    def __init__(self, conn, addr):
-        super(ClientConnection, self).__init__()
-        self.conn   = conn
-        self.addr   = addr
-        self.dh_key = crypto.diffiehellman(self.conn, server=True)
-        self.GCM    = crypto.AES_GCM(self.dh_key)
-        self.IV     = 0
-        self.conn.setblocking(0)
-        self.start()
 
     def send(self, prompt, cmd, action):
         if not self.alive:
@@ -201,7 +192,7 @@ def main():
         elif cmd == 'quit':
             quit_option = raw_input('Exit the server and end all client ' \
                                     'connections (y/N)? ')
-            if quit_option[0].lower() == 'y':
+            if len(quit_option) and quit_option[0].lower() == 'y':
                 # gracefull kill all clients here
                 sys.exit(0)
             continue
