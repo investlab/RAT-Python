@@ -20,8 +20,8 @@ from core import toolkit
 
 
 PLAT = sys.platform
-HOST = '208.68.38.5'
-PORT = 51337
+HOST = 'localhost'
+PORT = 1337
 
 
 def main():
