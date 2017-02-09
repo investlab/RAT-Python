@@ -13,7 +13,7 @@ class Client(object):
     # take plaintext, encrypt using GCM object, and send over sock
     def sendGCM(self, plaintext):
         ciphertext, tag = self.GCM.encrypt(self.IV, plaintext)
-        self.IV += 2 
+        self.IV += 2 # self incrementing should ONLY happen here
         return self.conn.send(
         crypto.long_to_bytes(self.IV-2, 12) +
         ciphertext + 
@@ -30,7 +30,6 @@ class Client(object):
                 m += self.conn.recv(4096)
             except SocketError:
                 break
-    
         # prevents decryption of empty string
         if not m: return m
     
@@ -39,3 +38,22 @@ class Client(object):
         tag = crypto.bytes_to_long(m[-16:])
     
         return self.GCM.decrypt(IV, ciphertext, tag)
+
+        # recieve a file from a socket (download)
+    def recvfile(self, fname):
+        with open(fname, 'wb') as f:
+            data = 1
+            while data:
+                # might be necessary to do a timeout somewhere in here
+                # sock.settimeout(2)
+                data = self.recvGCM()
+                f.write(data)
+
+    # send a file over a socket (upload)
+    def sendfile(self, fname):
+        with open(fname, 'rb') as f:
+            res = f.read(4096)
+            while len(res):
+                self.sendGCM(res)
+                res = f.read(4096)
+            # sock.send('\x00\x00\x00\x00') # EOF
