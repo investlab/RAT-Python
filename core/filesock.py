@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# basicRAT file module
+# basicRAT filesock module
 # https://github.com/vesche/basicRAT
 #
 

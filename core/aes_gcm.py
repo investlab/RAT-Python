@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """
     Copyright (C) 2013 Bo Zhu http://about.bozhu.me
@@ -57,16 +57,16 @@ class InvalidTagException(Exception):
 class AES_GCM:
     def __init__(self, master_key):
         self.change_key(master_key)
-    
+
     def change_key(self, master_key):
         if (len(master_key)*8 not in (128, 192, 256)):
             raise InvalidInputException('Error: Master key must be \
                                          128, 192 or 256 bit')
-    
+
         self.__master_key = master_key
         self.__aes_ecb = AES.new(self.__master_key, AES.MODE_ECB)
         self.__auth_key = bytes_to_long(self.__aes_ecb.encrypt(b'\x00' * 16))
-    
+
         # precompute the table for multiplication in finite field
         table = []  # for 8-bit
         for i in range(16):
@@ -75,7 +75,7 @@ class AES_GCM:
                 row.append(gf_2_128_mul(self.__auth_key, j << (8 * i)))
             table.append(tuple(row))
         self.__pre_table = tuple(table)
-    
+
         self.prev_init_value = None  # reset
 
     def __times_auth_key(self, val):

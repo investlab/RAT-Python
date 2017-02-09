@@ -8,14 +8,9 @@
 import os
 import socket
 
+from aes_gcm import *
 from Crypto.Hash import SHA256
 from Crypto.Util.number import bytes_to_long, long_to_bytes
-from aes_gcm import *
-
-
-FB_KEY = '82e672ae054aa4de6f042c888111686a'
-# generate your own key with...
-# python -c "import binascii, os; print(binascii.hexlify(os.urandom(16)))"
 
 
 class PaddingError(Exception):
