@@ -13,6 +13,20 @@ import socket
 import urllib
 import uuid
 
+SURVEY_FORMAT = '''
+System Platform     - {}
+Processor           - {}
+Architecture        - {}
+Internal IP         - {}
+External IP         - {}
+MAC Address         - {}
+Internal Hostname   - {}
+External Hostname   - {}
+Hostname Aliases    - {}
+FQDN                - {}
+Current User        - {}
+Admin Access        - {}'''
+
 
 def run(plat):
     # OS information
@@ -32,7 +46,8 @@ def run(plat):
 
     # get external ip address
     ex_ip_grab = [ 'ipinfo.io/ip', 'icanhazip.com', 'ident.me',
-                   'ipecho.net/plain', 'myexternalip.com/raw' ]
+                   'ipecho.net/plain', 'myexternalip.com/raw',
+                   'wtfismyip.com/text' ]
     external_ip = ''
     for url in ex_ip_grab:
         try:
@@ -41,6 +56,13 @@ def run(plat):
             pass
         if external_ip and (6 < len(external_ip) < 16):
             break
+
+    # reverse dns lookup
+    try:
+        ext_hostname, aliases, _ = socket.gethostbyaddr(external_ip)
+    except (socket.herror, NameError):
+        ext_hostname, aliases = '', []
+    aliases = ', '.join(aliases)
 
     # platform specific
     is_admin = False
@@ -53,17 +75,6 @@ def run(plat):
 
     admin_access = 'Yes' if is_admin else 'No'
 
-    survey_results = '''
-    System Platform     - {}
-    Processor           - {}
-    Architecture        - {}
-    Hostname            - {}
-    FQDN                - {}
-    Internal IP         - {}
-    External IP         - {}
-    MAC Address         - {}
-    Current User        - {}
-    Admin Access        - {}'''.format(sys_platform, processor, architecture,
-    hostname, fqdn, internal_ip, external_ip, mac, username, admin_access)
-
-    return survey_results
+    # return survey results
+    return SURVEY_FORMAT.format(sys_platform, processor, architecture,
+    internal_ip, external_ip, mac, hostname, ext_hostname, aliases, fqdn, username, admin_access)
