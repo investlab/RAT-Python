@@ -87,5 +87,7 @@ On Windows you will need Python 2.x, PyInstaller, pycrypto, pywin32, and pefile.
 * [@reznok](https://github.com/reznok), multiple client connection prototype.
 
 ## Other open-source Python RATs for Reference
-* [ahhh/Reverse_DNS_Shell](https://github.com/ahhh/Reverse_DNS_Shell)
+* [nathanlopez/Stitch](https://github.com/nathanlopez/Stitch)
+* [n1nj4sec/pupy](https://github.com/n1nj4sec/pupy)
 * [sweetsoftware/Ares](https://github.com/sweetsoftware/Ares)
+* [ahhh/Reverse_DNS_Shell](https://github.com/ahhh/Reverse_DNS_Shell)
