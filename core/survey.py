@@ -10,6 +10,7 @@ import getpass
 import os
 import platform
 import socket
+import time
 import urllib
 import uuid
 
@@ -25,6 +26,7 @@ External Hostname   - {}
 Hostname Aliases    - {}
 FQDN                - {}
 Current User        - {}
+System Datetime     - {}
 Admin Access        - {}'''
 
 
@@ -64,6 +66,10 @@ def run(plat):
         ext_hostname, aliases = '', []
     aliases = ', '.join(aliases)
 
+    # datetime, local non-DST timezone
+    dt = time.strftime('%a, %d %b %Y %H:%M:%S {}'.format(time.tzname[0]),
+         time.localtime())
+
     # platform specific
     is_admin = False
 
@@ -77,4 +83,5 @@ def run(plat):
 
     # return survey results
     return SURVEY_FORMAT.format(sys_platform, processor, architecture,
-    internal_ip, external_ip, mac, hostname, ext_hostname, aliases, fqdn, username, admin_access)
+    internal_ip, external_ip, mac, hostname, ext_hostname, aliases, fqdn,
+    username, dt, admin_access)
