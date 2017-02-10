@@ -12,8 +12,10 @@ from aes_gcm import *
 from Crypto.Hash import SHA256
 from Crypto.Util.number import bytes_to_long, long_to_bytes
 
+
 class PaddingError(Exception):
     pass
+
 
 # PKCS#7 - RFC 2315 section 10.3.2
 def pkcs7(s, bs=16):

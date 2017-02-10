@@ -14,7 +14,7 @@ import urllib
 import uuid
 
 
-def run(plat_type):
+def run(plat):
     # OS information
     sys_platform = platform.platform()
     processor    = platform.processor()
@@ -45,10 +45,10 @@ def run(plat_type):
     # platform specific
     is_admin = False
 
-    if plat_type.startswith('win'):
+    if plat == 'win':
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
 
-    elif plat_type.startswith('linux') or platform.startswith('darwin'):
+    elif plat in ['nix', 'mac']:
         is_admin = os.getuid() == 0
 
     admin_access = 'Yes' if is_admin else 'No'

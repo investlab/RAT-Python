@@ -71,10 +71,12 @@ class Server(threading.Thread):
             self.client_count += 1
 
     def select_client(self, client_id):
-        try: return self.clients[int(client_id)]
-        except (KeyError, ValueError): return None
+        try:
+            return self.clients[int(client_id)]
+        except (KeyError, ValueError):
+            return None
 
-    #order is not retained. maybe use SortedDict? its a work in progress.
+    # order is not retained. maybe use SortedDict? its a work in progress.
     def get_clients(self):
         return [v for k,v in self.clients.iteritems() if v.alive]
 
@@ -107,7 +109,6 @@ class ClientConnection(common.Client):
                 if os.path.isfile(fname):
                     print 'Error: File name already exists.'
                     return
-
                 self.recvfile(fname)
 
         # send file
@@ -117,7 +118,6 @@ class ClientConnection(common.Client):
                 if not os.path.isfile(fname):
                     print 'Error: File not found.'
                     return
-
                 self.sendfile(fname)
 
         # regenerate DH key

