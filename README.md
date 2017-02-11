@@ -1,11 +1,11 @@
 # basicRAT
 
-This is a Python RAT (Remote Access Trojan), basicRAT was created to maintain a clean design full-featured Python RAT. Currently a work in progress and still being hacked on.
+This is a cross-platform Python Remote Access Trojan (RAT), basicRAT was created to maintain a clean design full-featured Python RAT. Currently a work in progress and still being actively hacked on.
 
 **Disclaimer: This RAT is for research purposes only, and should only be used on authorized systems. Accessing a computer system or network without authorization or explicit permission is illegal.**
 
 ## Features
-* Cross-platform
+* Cross-platform (Windows, Linux, and macOS)
 * AES GCM encrypted C2 with D-H exchange
 * Accepts connection from multiple clients
 * Command execution
@@ -62,21 +62,34 @@ On Linux you will need Python 2.x, [PyInstaller](http://www.pyinstaller.org/), a
 On Windows you will need Python 2.x, PyInstaller, pycrypto, pywin32, and pefile. Then run something like `C:\path\to\PyInstaller-3.2\PyInstaller-3.2\pyinstaller.py --onefile basicRAT_client.py` and it should generate a `dist/` folder that contains a stand-alone PE (portable executable).
 
 ## Todo
+* Interactive shell
+* Client periodic connection attempt
 * Client binary generation tool (cross-platform)
   * Pyinstaller
   * Switch options for remote IP, port, etc
-* Persistance (cross-platform)
+* Persistence (cross-platform)
   * Windows: Registry keys, WMIC, Startup Dir
-  * Linux: Cron jobs, services, modprobe
-* Common C2 Protocols (HTTP, DNS)
+  * Linux: cron jobs, services, modprobe
+  * macOS: LaunchAgent, LaunchDaemons
+* Self-destruct (remove the RAT entirely)
 * Privilege Escalation (getsystem-esque, dirty cow)
+* Common C2 Protocols (HTTP, DNS)
+* Clean log files
+    * Linux: bash history, var logs, audit logs, etc
+    * Windows: Event logs, prefetch, etc
 * Screenshot
 * Keylogger
 * Expand toolkit (unrar, sysinfo)
-* Scanning utility (probe scan / ping sweep, scanning subnet)
+* Scanning utilities (probe scan / ping sweep, scanning subnet)
 * Password dumping (mimikatz / gsecdump)
-* Tunneling
-* Client periodic connection attempt
+* Tunneling / Pivoting (ssh)
+* Anti-virus detection and evasion
+* VM and Sandbox detection
+* Exfil browser history
+* Search file system for sensitive information using regex
+    * addresses, credit cards numbers, socials, PII, etc
+* Detect web cameras and take snapshots
+* Steal wifi passwords
 
 ## Authors
 * Austin Jackson [@vesche](https://github.com/vesche)
