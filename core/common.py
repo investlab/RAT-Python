@@ -19,14 +19,14 @@ class Client(object):
         self.IV     = IV
         self.uid    = uid
         self.conn.setblocking(0)
-        
+
     # take plaintext, encrypt using GCM object, and send over sock
     def sendGCM(self, plaintext):
         ciphertext, tag = self.GCM.encrypt(self.IV, plaintext)
         self.IV += 2 # self incrementing should ONLY happen here
         return self.conn.send(
             crypto.long_to_bytes(self.IV-2, 12) +
-            ciphertext + 
+            ciphertext +
             crypto.long_to_bytes(tag, 16)
         )
 

