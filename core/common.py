@@ -56,12 +56,10 @@ class Client(object):
         if os.path.isfile(fname):
             return
         with open(fname, 'wb') as f:
-            data = 1
+            data = self.recvGCM()
             while data:
-                # might be necessary to do a timeout somewhere in here
-                # sock.settimeout(2)
-                data = self.recvGCM()
                 f.write(data)
+                data = self.recvGCM()
 
     # send a file over a socket (upload)
     def sendfile(self, fname):
@@ -72,4 +70,4 @@ class Client(object):
             while len(res):
                 self.sendGCM(res)
                 res = f.read(4096)
-            # sock.send('\x00\x00\x00\x00') # EOF
+            sock.send('\x00\x00\x00\x00') # EOF

@@ -61,7 +61,7 @@ def main():
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
-                client.recvfile(fname)
+                client.recvfile(conn, fname)
                 continue
 
         # regenerate DH key
