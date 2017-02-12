@@ -8,6 +8,7 @@
 import crypto
 import os
 import socket
+import time
 
 
 class Client(object):
@@ -49,25 +50,34 @@ class Client(object):
         ciphertext = m[12:-16]
         tag = crypto.bytes_to_long(m[-16:])
 
-        return self.GCM.decrypt(IV, ciphertext, tag)
+        #try:
+        data = self.GCM.decrypt(IV, ciphertext, tag)
+        #except:
+        #    data = ''
+        #    pass
+
+        return data
 
     # recieve a file from a socket (download)
     def recvfile(self, fname):
         if os.path.isfile(fname):
             return
         with open(fname, 'wb') as f:
-            data = self.recvGCM()
+            # data = self.recvGCM()
+            # f.write(data)
+            data = 1
             while data:
-                f.write(data)
                 data = self.recvGCM()
+                f.write(data)
 
     # send a file over a socket (upload)
     def sendfile(self, fname):
         if not os.path.isfile(fname):
             return
         with open(fname, 'rb') as f:
-            res = f.read(4096)
-            while len(res):
-                self.sendGCM(res)
+            # res = f.read(4096)
+            # self.sendGCM(res)
+            res = 1
+            while res:
                 res = f.read(4096)
-            sock.send('\x00\x00\x00\x00') # EOF
+                self.sendGCM(res)
