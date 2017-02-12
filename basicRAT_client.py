@@ -52,17 +52,13 @@ def main():
 
         # send file
         elif cmd == 'download':
-            for fname in action.split():
-                fname = fname.strip()
-                client.sendfile(fname)
-                continue
+            client.sendfile(action.rstrip())
+            continue
 
         # receive file
         elif cmd == 'upload':
-            for fname in action.split():
-                fname = fname.strip()
-                client.recvfile(conn, fname)
-                continue
+            client.recvfile(action.rstrip())
+            continue
 
         # regenerate DH key
         # elif cmd == 'rekey':
