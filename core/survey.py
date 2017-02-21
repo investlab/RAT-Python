@@ -14,6 +14,7 @@ import time
 import urllib
 import uuid
 
+
 SURVEY_FORMAT = '''
 System Platform     - {}
 Processor           - {}
@@ -44,7 +45,7 @@ def run(plat):
     fqdn        = socket.getfqdn()
     internal_ip = socket.gethostbyname(hostname)
     raw_mac     = uuid.getnode()
-    mac         = ':'.join(("%012X" % raw_mac)[i:i+2] for i in range(0, 12, 2))
+    mac         = ':'.join(('%012X' % raw_mac)[i:i+2] for i in range(0, 12, 2))
 
     # get external ip address
     ex_ip_grab = [ 'ipinfo.io/ip', 'icanhazip.com', 'ident.me',

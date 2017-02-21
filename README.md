@@ -1,6 +1,6 @@
 # basicRAT
 
-This is a cross-platform Python Remote Access Trojan (RAT), basicRAT was created to maintain a clean design full-featured Python RAT. Currently a work in progress and still being actively hacked on.
+This is a cross-platform Python 2.x Remote Access Trojan (RAT), basicRAT was created to maintain a clean design full-featured Python RAT. Currently a work in progress and still being actively hacked on.
 
 **Disclaimer: This RAT is for research purposes only, and should only be used on authorized systems. Accessing a computer system or network without authorization or explicit permission is illegal.**
 

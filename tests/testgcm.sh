@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # creates 100 10MB files
 # sends them
 # then compares hashes
 # no response means all 100 succeeded
+
 for i in `seq 1 5`;
 do
   echo -n "$i "

