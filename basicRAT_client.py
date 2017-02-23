@@ -24,6 +24,17 @@ PORT = 1337
 
 
 def main():
+    # set system platform to win, nix, mac, or unk
+    plat = sys.platform
+    if plat.startswith('win'):
+        plat = 'win'
+    elif plat.startswith('linux'):
+        plat = 'nix'
+    elif plat.startswith('darwin'):
+        plat = 'mac'
+    else:
+        plat = 'unk'
+    
     conn = socket.socket()
     conn.connect((HOST, PORT))
     client = common.Client(conn, HOST, 1)
@@ -86,14 +97,4 @@ def main():
 
 
 if __name__ == '__main__':
-    plat = sys.platform
-    if plat.startswith('win'):
-        plat = 'win'
-    elif plat.startswith('linux'):
-        plat = 'nix'
-    elif plat.startswith('darwin'):
-        plat = 'mac'
-    else:
-        plat = 'unk'
-
     main()
