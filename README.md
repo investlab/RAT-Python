@@ -38,7 +38,7 @@ help                - Show this help menu.
 kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
 quit                - Exit the server and end all client connections.
-scan <ip>           - Scan top 25 ports on a single host.
+scan <ip>           - Scan top 25 TCP ports on a single host.
 selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.

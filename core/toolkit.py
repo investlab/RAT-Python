@@ -16,6 +16,8 @@ def selfdestruct(plat):
     if plat == 'win':
         import _winreg
         from _winreg import HKEY_CURRENT_USER as HKCU
+        
+        run_key = r'Software\Microsoft\Windows\CurrentVersion\Run'
 
         try:
             reg_key = _winreg.OpenKey(HKCU, run_key, 0, _winreg.KEY_ALL_ACCESS)

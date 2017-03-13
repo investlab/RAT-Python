@@ -33,7 +33,7 @@ def mac_persistence():
 
 
 def run(plat):
-    if   plat == 'win':
+    if plat == 'win':
         success, details = windows_persistence()
     elif plat == 'nix':
         success, details = linux_persistence()
