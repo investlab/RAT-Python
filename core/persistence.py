@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #
 # basicRAT persistence module
 # https://github.com/vesche/basicRAT

