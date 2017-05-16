@@ -94,7 +94,7 @@ class ClientConnection():
         self.conn = conn
         self.addr = addr
         self.uid  = uid
-    
+
     alive = True
 
     def send(self, prompt):
@@ -115,7 +115,11 @@ class ClientConnection():
             return
 
         # send prompt to client
-        self.conn.send(prompt)
+        try:
+            self.conn.send(prompt)
+        except socket.error:
+            print 'Error: Could not connect to client.'
+            return
         self.conn.settimeout(1)
 
         # kill client connection
@@ -217,8 +221,7 @@ def main():
             client.send(prompt)
         except (socket.error, ValueError) as e:
             print e
-            print 'Client {} disconnected.'.format(client.uid)
-            cmd = 'kill'
+            print 'Client {} is unresponsive.'.format(client.uid)
 
         # reset client id if client killed
         if cmd in ['kill', 'selfdestruct']:

