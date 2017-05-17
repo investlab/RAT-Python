@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 #
 # basicRAT GCM testing
 # https://github.com/vesche/basicRAT

