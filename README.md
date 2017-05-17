@@ -29,13 +29,16 @@ basicRAT server listening for connections on port 1337.
 
 [?] basicRAT> help
 
+cat <file>          - Output a file to the screen.
 client <id>         - Connect to a client.
 clients             - List connected clients.
 execute <command>   - Execute a command on the target.
 goodbye             - Exit the server and keep all client connections alive.
 help                - Show this help menu.
 kill                - Kill the client connection.
+ls                  - List files in the current directory.
 persistence         - Apply persistence mechanism.
+pwd                 - Get the present working directory.
 quit                - Exit the server and destroy all client connections.
 rekey               - Regenerate crypto key.
 scan <ip>           - Scan top 25 TCP ports on a single host.

