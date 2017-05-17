@@ -1,1 +1,1 @@
-__all__ = [ 'persistence', 'scan', 'survey', 'toolkit' ]
+__all__ = [ 'crypto', 'persistence', 'scan', 'survey', 'toolkit' ]
