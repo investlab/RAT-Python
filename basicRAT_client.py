@@ -42,10 +42,7 @@ def client_loop(conn, dhkey):
         cmd, _, action = data.partition(' ')
 
         if cmd == 'execute':
-            results = subprocess.Popen(action, shell=True,
-                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                      stdin=subprocess.PIPE)
-            results = results.stdout.read() + results.stderr.read()
+            results = toolkit.execute(action)
 
         elif cmd == 'kill':
             conn.close()
