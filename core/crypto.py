@@ -5,27 +5,28 @@
 
 import os
 
-from aes_gcm import *
+from Crypto import Random
+from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Util.number import bytes_to_long, long_to_bytes
 
 
-class PaddingError(Exception):
-    pass
+def pad(s):
+    return s + b'\0' * (AES.block_size - len(s) % AES.block_size)
 
 
-# PKCS#7 - RFC 2315 section 10.3.2
-def pkcs7(s, bs=16):
-    i = (bs - (len(s) % bs))
-    return s + (chr(i)*i)
+def encrypt(plaintext, key):
+    plaintext = pad(plaintext)
+    iv = Random.new().read(AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return iv + cipher.encrypt(plaintext)
 
 
-# Strip PKCS#7 padding - throws PaddingError on failure
-def unpkcs7(s):
-    i = s[-1]
-    if s.endswith(i*ord(i)):
-        return s[:-ord(i)]
-    raise PaddingError('PKCS7 improper padding {}'.format(repr(s[-32:])))
+def decrypt(ciphertext, key):
+    iv = ciphertext[:AES.block_size]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plaintext = cipher.decrypt(ciphertext[AES.block_size:])
+    return plaintext.rstrip(b'\0')
 
 
 # Diffie-Hellman Internet Key Exchange (IKE) - RFC 2631

