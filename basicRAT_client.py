@@ -28,7 +28,8 @@ elif sys.platform.startswith('linux'):
 elif sys.platform.startswith('darwin'):
     PLAT = 'mac'
 else:
-    PLAT = 'unk'
+    print 'This platform is not supported.'
+    sys.exit(1)
 
 
 def client_loop(conn, dhkey):
