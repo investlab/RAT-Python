@@ -44,7 +44,7 @@ def client_loop(conn, dhkey):
 
         if cmd == 'kill':
             conn.close()
-            sys.exit(0)
+            return 1
 
         elif cmd == 'selfdestruct':
             conn.close()
@@ -107,9 +107,11 @@ def main():
         # horrible for debugging. It will keep the client alive if the server
         # is torn down unexpectedly, or if the client freaks out.
         try:
-            client_loop(conn, dhkey)
-        except:
-            pass
+            exit_code = client_loop(conn, dhkey)
+        except: pass
+
+        if exit_code:
+            sys.exit(exit_code)
 
 
 if __name__ == '__main__':
