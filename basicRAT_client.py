@@ -107,11 +107,11 @@ def main():
         # horrible for debugging. It will keep the client alive if the server
         # is torn down unexpectedly, or if the client freaks out.
         try:
-            exit_code = client_loop(conn, dhkey)
+            exit_status = client_loop(conn, dhkey)
         except: pass
 
-        if exit_code:
-            sys.exit(exit_code)
+        if exit_status:
+            sys.exit(0)
 
 
 if __name__ == '__main__':
