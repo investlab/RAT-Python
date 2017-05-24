@@ -91,6 +91,8 @@ def client_loop(conn, dhkey):
 
 
 def main():
+    exit_status = 0
+    
     while True:
         conn = socket.socket()
 
