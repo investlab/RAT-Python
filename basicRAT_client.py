@@ -74,7 +74,7 @@ def client_loop(conn, dhkey):
             results = toolkit.execute(action)
 
         elif cmd == 'ls':
-            results = toolkit.ls(PLAT)
+            results = toolkit.ls(action, PLAT)
 
         elif cmd == 'pwd':
             results = toolkit.pwd(PLAT)

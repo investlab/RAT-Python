@@ -28,11 +28,17 @@ def execute(command):
     return output.stdout.read() + output.stderr.read()
 
 
-def ls(plat):
-    if plat == 'win':
-        return execute('dir')
+def ls(path, plat):
+    if not path:
+        path = '.'
+    
+    if os.path.exists(path):
+        if plat == 'win':
+            return execute('dir {}'.format(path))
+        else:
+            return execute('ls {}'.format(path))
     else:
-        return execute('ls')
+        return 'Error: Path not found.'
 
 
 def pwd(plat):
