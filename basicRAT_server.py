@@ -145,6 +145,14 @@ class ClientConnection():
             print recv_data
 
 
+def completer(text, state):
+    options = [i for i in COMMANDS if i.startswith(text)]
+    if state < len(options):
+        return options[state] + ' '
+    else:
+        return None
+
+
 def get_parser():
     parser = argparse.ArgumentParser(description='basicRAT server')
     parser.add_argument('-p', '--port', help='Port to listen on.',
@@ -159,6 +167,10 @@ def main():
     client = None
 
     print BANNER
+
+    # turn tab completion on
+    readline.parse_and_bind('tab: complete')
+    readline.set_completer(completer)
 
     # start server
     server = Server(port)
