@@ -41,7 +41,10 @@ def run(plat):
     # network information
     hostname    = socket.gethostname()
     fqdn        = socket.getfqdn()
-    internal_ip = socket.gethostbyname(hostname)
+    try:
+        internal_ip = socket.gethostbyname(hostname)
+    except socket.gaierror:
+        internal_ip = ''
     raw_mac     = uuid.getnode()
     mac         = ':'.join(('%012X' % raw_mac)[i:i+2] for i in range(0, 12, 2))
 
