@@ -9,8 +9,11 @@ This is a cross-platform Python 2.x Remote Access Trojan (RAT), basicRAT was cre
 * AES-256 encrypted C2 with D-H exchange
 * Accepts connection from multiple clients
 * Command execution
-* Standard utilities (wget, unzip)
+* Standard utilities (cat, ls, pwd, unzip, wget)
 * System survey
+* Self-destruct
+* Primitive port scanning
+* Client reconnect
 
 ## Usage
 ```
@@ -77,7 +80,6 @@ On Windows you will need Python 2.x, PyInstaller, pycrypto, pywin32, and pefile.
   * Windows: Registry keys, WMIC, Startup Dir
   * Linux: cron jobs, services, modprobe
   * macOS: LaunchAgent, LaunchDaemons
-* Self-destruct (remove the RAT entirely)
 * Privilege Escalation (getsystem-esque, dirty cow)
 * Common C2 Protocols (HTTP, DNS)
 * Clean log files
