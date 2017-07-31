@@ -143,14 +143,6 @@ class ClientConnection():
         self.uid   = uid
 
 
-def completer(text, state):
-    options = [i for i in COMMANDS if i.startswith(text)]
-    if state < len(options):
-        return options[state] + ' '
-    else:
-        return None
-
-
 def get_parser():
     parser = argparse.ArgumentParser(description='basicRAT server')
     parser.add_argument('-p', '--port', help='Port to listen on.',
@@ -165,10 +157,6 @@ def main():
     client = None
 
     print BANNER
-
-    # turn tab completion on
-    readline.parse_and_bind('tab: complete')
-    readline.set_completer(completer)
 
     # start server
     server = Server(port)
@@ -186,6 +174,19 @@ def main():
         'quit':         server.quit_server,
         'selfdestruct': server.selfdestruct_client
     }
+
+    def completer(text, state):
+        commands = CLIENT_COMMANDS + [k for k, _ in server_commands.items()]
+
+        options = [i for i in commands if i.startswith(text)]
+        if state < len(options):
+            return options[state] + ' '
+        else:
+            return None
+
+    # turn tab completion on
+    readline.parse_and_bind('tab: complete')
+    readline.set_completer(completer)
 
     while True:
         try:
