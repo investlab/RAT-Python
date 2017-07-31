@@ -7,7 +7,6 @@
 
 import argparse
 import readline
-import select
 import socket
 import sys
 import threading
