@@ -60,7 +60,7 @@ Client 1 selected.
 
 [1] basicRAT> execute uname -a
 Running execute...
-Linux austinjackson892-foo-4201864 4.9.17-c9 #1 SMP Thu Mar 23 01:38:54 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+Linux sandbox3 4.9.17-c9 #1 SMP Thu Mar 23 01:38:54 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
 execute completed.
 ```
 
