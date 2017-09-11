@@ -192,7 +192,7 @@ def main():
         else:
             ccid = '?'
 
-        prompt = raw_input('[{}] basicRAT> '.format(ccid)).rstrip()
+        prompt = raw_input('\n[{}] basicRAT> '.format(ccid)).rstrip()
 
         # allow noop
         if not prompt:
